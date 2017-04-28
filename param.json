@@ -2,8 +2,8 @@
    "items": [
       {
             "hostName": "clm-aus-015321.bmc.com",
-            "userName": "Allen",
-            "password": "welcome123",
+            "userName": "gokumar",
+            "password": "bmcAdm1n",
             "maxRecords": 5000,
             "pollInterval": 86400000
       }
