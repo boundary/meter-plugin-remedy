@@ -7,7 +7,7 @@
   "description": "Ingests Incidents and Change tickets from BMC Remedy",
   "command_lua": "",
   "postExtract_lua": "",
-  "command": "java -jar target/meter-plugin-remedy-1.0-SNAPSHOT-full.jar",
+  "command": "java -jar target/meter-plugin-remedy-0.9.0-SNAPSHOT-full.jar",
   "postExtract": "",
   "ignore": "",
   "icon": "icon.png",
