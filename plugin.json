@@ -1,0 +1,79 @@
+{
+  "name": "BMC Remedy Plugin",
+  "version": "0.9.0",
+  "meterVersionRequired": "4.2.0-611",
+  "unsupportedPlatforms": [],
+  "tags": "remedy",
+  "description": "Ingests Incidents and Change tickets from BMC Remedy",
+  "command_lua": "",
+  "postExtract_lua": "",
+  "command": "java -jar target/meter-plugin-remedy-1.0-SNAPSHOT-full.jar",
+  "postExtract": "",
+  "ignore": "",
+  "icon": "icon.png",
+  "metrics": [
+  ],
+  "dashboards": [
+  ],
+  "paramArray": {
+    "itemTitle": [
+      "source",
+      "hostName",
+      "port",
+      "userName",
+      "passowrd",
+      "pollInterval"
+    ],
+    "schemaTitle": "Remedy Instance"
+  },
+  "paramSchema": [
+    {
+      "title": "Source",
+      "name": "source",
+      "description": "A source name.",
+      "type": "string",
+      "default": "",
+      "required": false
+    },
+    {
+      "title": "Host Name",
+      "name": "hostName",
+      "description": "The host of BMC Remedy server",
+      "type": "string",
+      "default": "127.0.0.1",
+      "required": true
+    },
+    {
+      "title": "Port",
+      "name": "port",
+      "description": "The port of BMC Remedy server",
+      "type": "integer",
+      "default": 0,
+      "required": true
+    },
+    {
+      "title": "User Name",
+      "name": "userName",
+      "description": "The user of BMC Remedy server",
+      "type": "string",
+      "default": "",
+      "required": false
+    },
+    {
+      "title": "Password",
+      "name": "password",
+      "description": "The password of BMC Remedy server",
+      "default": "",
+      "type": "password",
+      "required": false
+    },
+    {
+      "title": "Poll Interval (ms)",
+      "name": "pollInterval",
+      "description": "How often (in milliseconds) to poll for events.",
+      "type": "integer",
+      "default": 300000,
+      "required": true
+    }
+  ]
+}
