@@ -83,7 +83,7 @@ public class RemedyCollector implements Collector {
         Calendar cal = null;
         while (true) {
             try {
-                arServerContext.logout();
+                arServerContext.login();
                 cal = Calendar.getInstance();
                 cal.add(Calendar.MILLISECOND, (0 - config.getPollInterval()));
                 Collection<Event> events = fetchData(arServerContext, cal.getTime(), config.getMaxRecords());
@@ -94,7 +94,6 @@ public class RemedyCollector implements Collector {
                 Thread.sleep(config.getPollInterval());
             } catch (InterruptedException | ARException e) {
                 e.printStackTrace();
-                System.exit(0);
             } finally {
                 arServerContext.logout();
             }
