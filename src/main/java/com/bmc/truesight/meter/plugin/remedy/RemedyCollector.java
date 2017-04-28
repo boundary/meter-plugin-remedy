@@ -83,8 +83,9 @@ public class RemedyCollector implements Collector {
         Calendar cal = null;
         while (true) {
             try {
+                arServerContext.logout();
                 cal = Calendar.getInstance();
-                cal.add(Calendar.MINUTE, (0 - config.getPollInterval()));
+                cal.add(Calendar.MILLISECOND, (0 - config.getPollInterval()));
                 Collection<Event> events = fetchData(arServerContext, cal.getTime(), config.getMaxRecords());
                 events.stream().forEach(event -> {
                     output.emit(event);
@@ -94,6 +95,8 @@ public class RemedyCollector implements Collector {
             } catch (InterruptedException | ARException e) {
                 e.printStackTrace();
                 System.exit(0);
+            } finally {
+                arServerContext.logout();
             }
         }
     }
@@ -144,8 +147,8 @@ public class RemedyCollector implements Collector {
         List<SortInfo> sortOrder = new ArrayList<SortInfo>();
 
         long totalIterations = 1;
-        if (maxRecords > (long)CHUNK_SIZE) {
-            totalIterations = maxRecords / (long)CHUNK_SIZE;
+        if (maxRecords > (long) CHUNK_SIZE) {
+            totalIterations = maxRecords / (long) CHUNK_SIZE;
         }
 
         boolean stopProcessing = false;
