@@ -12,31 +12,19 @@
   "ignore": "",
   "icon": "icon.png",
   "metrics": [
+  "DUMMAY METRICS"
   ],
   "dashboards": [
   ],
   "paramArray": {
     "itemTitle": [
-      "source",
-      "hostName",
-      "port",
-      "userName",
-      "passowrd",
-      "pollInterval"
+      "hostName"
     ],
     "schemaTitle": "Remedy Instance"
   },
   "paramSchema": [
     {
-      "title": "Source",
-      "name": "source",
-      "description": "A source name.",
-      "type": "string",
-      "default": "",
-      "required": false
-    },
-    {
-      "title": "Host Name",
+      "title": "AR Host Name",
       "name": "hostName",
       "description": "The host of BMC Remedy server",
       "type": "string",
@@ -49,7 +37,7 @@
       "description": "The port of BMC Remedy server",
       "type": "integer",
       "default": 0,
-      "required": true
+      "required": false
     },
     {
       "title": "User Name",
@@ -67,12 +55,100 @@
       "type": "password",
       "required": false
     },
+	{
+      "title": "Request Type",
+      "name": "requestType",
+      "description": "Request Type",
+      "type": { "enum" : [["IM", "im"], ["CM", "cm"]] },
+      "default": "im",
+      "required" : true
+    },
+	{
+      "title": "RemedyField Mapping",
+      "name": "fileds",
+      "description": "Remedy TSI Fields Mapping Configuration",
+      "type": "array",
+      "items": {
+	  "type": "string"
+      },
+      "default": [ "{",
+        "\t\"config\": {",
+        "  \t\t\"conditionFields\":[1000000564,3,6]",
+        "\t},",
+        "\t\"eventDefinition\": {",
+        "\t\t\"title\": \"@TITLE\",",
+        "\t\t\"fingerprintFields\": [",
+		"\t\t\t\"IncidentNumber\"",
+        "\t\t],",
+        "\t\t\"severity\": \"@SEVERITY\",",
+        "\t\t\"status\": \"@STATUS\",",
+        "\t\t\"properties\": {",
+        "\t\t\t\"Assignee\": \"@ASSIGNEE\",",
+        "\t\t\t\"IncidentNumber\": \"@INCIDENT_NUMBER\",",
+        "\t\t\t\"CI\": \"@CI\",",
+        "\t\t\t\"Priority\": \"@PRIORITY\",",
+        "\t\t\t\"PriorityWeight\": \"@WEIGHT\",",
+        "\t\t\t\"app_id\": \"Remedy DEMO 12\"",
+        "\t\t},",
+        "\t\t\"createdAt\": \"@CREATED_AT\",",
+        "\t\t\"eventClass\": \"Incident\",",
+        "\t\t\"source\": {",
+        "\t\t\t\"name\": \"Remedy\",",
+        "\t\t\t\"type\": \"Remedy\",",
+        "\t\t\t\"ref\": \"Remedy\"",
+        "\t\t},",
+        "\t\t\"sender\": {",
+        "\t\t\t\"name\": \"Remedy\",",
+        "\t\t\t\"type\": \"Remedy\",",
+        "\t\t\t\"ref\": \"Remedy\"",
+        "\t\t}",
+        "\t},",
+        "\t\"@SEVERITY\": {",
+        "\t\t\"fieldId\":1000000162,",
+        "\t\t\"valueMap\":{",
+        "\t\t\t\"1000\": \"Critical\",",
+        "\t\t\t\"2000\": \"High\",",
+        "\t\t\t\"3000\": \"Medium\",",
+        "\t\t\t\"4000\": \"Low\"",
+        "\t\t}",
+        "\t},",      
+	  "\t\"@PRIORITY\": {",
+        "\t\t\"fieldId\": 1000000164,",
+        "\t\t\"valueMap\":{",
+        "\t\t\t\"0\": \"Critical\",",
+        "\t\t\t\"1\": \"High\",",
+        "\t\t\t\"2\": \"Medium\",",
+        "\t\t\t\"3\": \"Low\"",
+        "\t\t}",
+        "\t},",
+        "\t\"@STATUS\": {",
+        "\t\t\"fieldId\": 7,",
+        "\t\t\"valueMap\":{",
+        "\t\t\t\"0\":\"New\",",
+        "\t\t\t\"1\": \"Assigned\",",
+        "\t\t\t\"2\": \"In Progress\",",
+        "\t\t\t\"3\": \"Pending\",",
+        "\t\t\t\"4\": \"Resolved\",",
+        "\t\t\t\"5\": \"Closed\",",
+        "\t\t\t\"6\": \"Cancelled\"",
+        "\t\t}",
+        "\t},",
+        "\t\"@INCIDENT_NUMBER\":{\"fieldId\":1000000161},",
+        "\t\"@WEIGHT\":{\"fieldId\":1000000169},",
+        "\t\"@TITLE\":{\"fieldId\":1000000000},",
+        "\t\"@ASSIGNEE\":{\"fieldId\":1000000218},",
+        "\t\"@CI\":{\"fieldId\":303544200},",
+        "\t\"@CREATED_AT\":{\"fieldId\":6}",
+        "\t",
+        "}"],
+      "required": true
+    },
     {
-      "title": "Poll Interval (ms)",
+      "title": "Poll Interval (min)",
       "name": "pollInterval",
-      "description": "How often (in milliseconds) to poll for events.",
+      "description": "How often (in Min) to poll for events.",
       "type": "integer",
-      "default": 300000,
+      "default": 15000,
       "required": true
     }
   ]
