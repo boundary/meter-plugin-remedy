@@ -1,7 +1,7 @@
 {
   "name": "BMC Remedy Plugin",
   "version": "0.9.0",
-  "meterVersionRequired": "4.2.0-611",
+  "meterVersionRequired": "4.6.2-839",
   "unsupportedPlatforms": [],
   "tags": "remedy",
   "description": "Ingests Incidents and Change tickets from BMC Remedy",
@@ -17,26 +17,13 @@
   ],
   "paramArray": {
     "itemTitle": [
-      "source",
-      "hostName",
-      "port",
-      "userName",
-      "passowrd",
-      "pollInterval"
+      "hostName","requestType"
     ],
     "schemaTitle": "Remedy Instance"
   },
   "paramSchema": [
     {
-      "title": "Source",
-      "name": "source",
-      "description": "A source name.",
-      "type": "string",
-      "default": "",
-      "required": false
-    },
-    {
-      "title": "Host Name",
+      "title": "AR Server Name",
       "name": "hostName",
       "description": "The host of BMC Remedy server",
       "type": "string",
@@ -46,10 +33,10 @@
     {
       "title": "Port",
       "name": "port",
-      "description": "The port of BMC Remedy server",
+      "description": "The API port of BMC Remedy server",
       "type": "integer",
       "default": 0,
-      "required": true
+      "required": false
     },
     {
       "title": "User Name",
@@ -67,12 +54,37 @@
       "type": "password",
       "required": false
     },
+	{
+      "title": "Ticket Type",
+      "name": "requestType",
+      "description": "Request Type",
+      "type": { "enum" : [["Incident", "incident tickets"], ["Change", "change tickets"]] },
+      "default": "incident tickets",
+      "required" : true
+    },
+	{
+      "title": "Field Mapping",
+      "name": "fields",
+      "description": "Remedy TSI Fields Mapping Configuration",
+      "type": "array",
+      "items": {
+	  "type": "string"
+      },
+      "default": [ "{",
+        "\t\"eventDefinition\": {",
+        "\t\t\"properties\": {",
+        "\t\t\t\"app_id\": \"meter-plugin-remedy\"",
+        "\t\t}",
+        "\t}",
+        "}"],
+      	"required": true
+    },
     {
-      "title": "Poll Interval (ms)",
+      "title": "Poll Interval (min)",
       "name": "pollInterval",
-      "description": "How often (in milliseconds) to poll for events.",
+      "description": "How often (in Min) to poll for events.",
       "type": "integer",
-      "default": 300000,
+      "default": 15,
       "required": true
     }
   ]

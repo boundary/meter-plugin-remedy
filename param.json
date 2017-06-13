@@ -1,14 +1,22 @@
 {
-   "items": [
-      {
-            "hostName": "clm-aus-015321.bmc.com",
-            "userName": "gokumar",
-            "password": "bmcAdm1n",
-            "maxRecords": 5000,
-            "pollInterval": 86400000
-      }
-   ]
+  "items":[
+    {
+      "hostName":"127.0.0.1",
+      "port":0,
+      "userName":"xxx",
+      "password":"xxx",
+      "requestType":"incident tickets",
+      "fields":[
+        "{",
+        "\t\"eventDefinition\": {",
+        "\t\t\"properties\": {",
+        "\t\t\t\"app_id\": \"Remedy DEMO\"",
+        "\t\t},",
+        "\t},",
+        "}"
+      ],
+      "pollInterval":15
+    }
+  ],
+  "pollInterval":15
 }
-
-
-

@@ -1,40 +1,54 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.bmc.truesight.meter.plugin.remedy;
 
-import com.boundary.plugin.sdk.CollectorDispatcher;
-import com.boundary.plugin.sdk.EventSink;
-import com.boundary.plugin.sdk.EventSinkStandardOutput;
-import com.boundary.plugin.sdk.MeasurementSink;
-import com.boundary.plugin.sdk.MeasurementSinkStandardOut;
-import com.boundary.plugin.sdk.Plugin;
-import com.boundary.plugin.sdk.PluginRunner;
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bmc.truesight.meter.plugin.remedy.util.Constants;
+import com.bmc.truesight.meter.plugin.remedy.util.PluginTemplateValidator;
+import com.bmc.truesight.meter.plugin.remedy.util.RequestType;
+import com.bmc.truesight.meter.plugin.remedy.util.Util;
+import com.bmc.truesight.saas.remedy.integration.ARServerForm;
+import com.bmc.truesight.saas.remedy.integration.TemplateParser;
+import com.bmc.truesight.saas.remedy.integration.TemplatePreParser;
+import com.bmc.truesight.saas.remedy.integration.TemplateValidator;
+import com.bmc.truesight.saas.remedy.integration.beans.Template;
+import com.bmc.truesight.saas.remedy.integration.exception.ParsingException;
+import com.bmc.truesight.saas.remedy.integration.exception.ValidationException;
+import com.bmc.truesight.saas.remedy.integration.impl.GenericTemplateParser;
+import com.bmc.truesight.saas.remedy.integration.impl.GenericTemplatePreParser;
+import com.boundary.plugin.sdk.CollectorDispatcher;
+import com.boundary.plugin.sdk.Event;
+import com.boundary.plugin.sdk.EventSink;
+import com.boundary.plugin.sdk.EventSinkAPI;
+import com.boundary.plugin.sdk.EventSinkStandardOutput;
+import com.boundary.plugin.sdk.MeasurementSink;
+import com.boundary.plugin.sdk.Plugin;
+import com.boundary.plugin.sdk.PluginRunner;
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+
 /**
  *
- * @author gokumar
+ * @author Santosh Patil
+ * @author vitiwari
  */
 public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
 
     RemedyPluginConfiguration configuration;
     CollectorDispatcher dispatcher;
-    MeasurementSink output;
     EventSink eventOutput;
+    EventSinkAPI eventSinkAPI;
+    private static final Logger LOG = LoggerFactory.getLogger(RemedyPlugin.class);
 
     @Override
     public void setConfiguration(RemedyPluginConfiguration configuration) {
         this.configuration = configuration;
-        this.output = new MeasurementSinkStandardOut();
         this.eventOutput = new EventSinkStandardOutput();
-        output.getClass();
+        this.eventSinkAPI = new EventSinkAPI();
     }
 
     @Override
@@ -46,14 +60,15 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
     public void loadConfiguration() {
         Gson gson = new Gson();
         try {
-            RemedyPluginConfiguration configuration = gson.fromJson(new FileReader("param.json"), RemedyPluginConfiguration.class);
-            setConfiguration(configuration);
+            //System.err.println("loading param.json data");
+            RemedyPluginConfiguration pluginConfiguration = gson.fromJson(new FileReader("param.json"), RemedyPluginConfiguration.class);
+            setConfiguration(pluginConfiguration);
         } catch (JsonParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.err.println("Exception occured while getting the param.json data" + e.getMessage());
+            eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.err.println("IOException occured while getting the param.json data" + e.getMessage());
+            eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
         }
     }
 
@@ -64,10 +79,43 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
 
     @Override
     public void run() {
-
         ArrayList<RemedyPluginConfigurationItem> items = configuration.getItems();
-        items.forEach((i) -> {
-            dispatcher.addCollector(new RemedyCollector(i));
+        items.forEach((config) -> {
+            boolean isValidJson = true;
+            //PARSING THE JSON STRING
+            //System.err.println("parsing param.json data");
+            TemplateParser templateParser = new GenericTemplateParser();
+            TemplatePreParser templatePreParser = new GenericTemplatePreParser();
+            Template template = null;
+            try {
+            	Template defaultTemplate=new Template();
+            	if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
+            		defaultTemplate = templatePreParser.loadDefaults(ARServerForm.INCIDENT_FORM);
+            	}else if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
+            		defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
+            	}
+                template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
+            } catch (ParsingException ex) {
+                System.err.println("Parsing failed - " + ex.getMessage());
+                eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
+                isValidJson = false;
+            }
+            TemplateValidator templateValidator = new PluginTemplateValidator();
+            try {
+                templateValidator.validate(template);
+            } catch (ValidationException ex) {
+                eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
+                isValidJson = false;
+            }
+            if (isValidJson) {
+            	if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
+                    dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
+                }else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
+                	dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.INCIDENT_FORM));
+                }
+            	
+                
+            }
         });
         dispatcher.run();
     }
@@ -79,6 +127,5 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
 
     @Override
     public void setMeasureOutput(MeasurementSink output) {
-        this.output = output;
     }
 }
