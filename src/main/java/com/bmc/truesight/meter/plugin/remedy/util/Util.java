@@ -78,7 +78,7 @@ public class Util {
     public static Template updateConfiguration(Template template, RemedyPluginConfigurationItem config) {
         Configuration configuration = template.getConfig();
         configuration.setRemedyHostName(config.getHostName());
-        configuration.setRemedyPort(config.getPort());
+        configuration.setRemedyPort(Integer.getInteger(config.getPort()));
         configuration.setRemedyUserName(config.getUserName());
         configuration.setRemedyPassword(config.getPassword());
         //template.setConfig(configuration);

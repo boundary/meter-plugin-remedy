@@ -55,20 +55,31 @@ public class RemedyTicketsCollector implements Collector {
         while (true) {
             try {
                 RemedyReader reader = new GenericRemedyReader();
-                ARServerUser arServerContext = reader.createARServerContext(config.getHostName(), config.getPort(), config.getUserName(), config.getPassword());
+                ARServerUser arServerContext = reader.createARServerContext(config.getHostName(), Integer.getInteger(config.getPort()), config.getUserName(), config.getPassword());
                 try {
                     reader.login(arServerContext);
                     int chunkSize = template.getConfig().getChunkSize();
                     int startFrom = 0;
                     int iteration = 1;
+                    int totalRecordsRead = 0;
                     OutputInteger nMatches = new OutputInteger();
                     boolean readNext = true;
                     Long currentMili = Calendar.getInstance().getTimeInMillis();
                     Long pastMili = currentMili - (config.getPollInterval() * 60 * 1000);
                     template.getConfig().setStartDateTime(new Date(pastMili));
                     template.getConfig().setEndDateTime(new Date(currentMili));
+                    System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime() + ")");
                     while (readNext) {
+                        System.err.println("Iteration : " + iteration);
                         List<TSIEvent> eventList = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
+                        totalRecordsRead += eventList.size();
+                        if (eventList.size() < chunkSize && totalRecordsRead < nMatches.intValue()) {
+                            System.err.println(" Request Sent to remedy (startFrom:" + startFrom + ",chunkSize:" + chunkSize + "), Response Got(RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
+                            System.err.println(" Based on response, adjusting the chunk Size as " + eventList.size());
+                            chunkSize = eventList.size();
+                        } else if (eventList.size() <= chunkSize) {
+                            System.err.println(" Request Sent to remedy (startFrom:" + startFrom + ", chunkSize:" + chunkSize + "), Response Got (RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
+                        }
                         if (eventList.size() > 0) {
                             eventList.forEach(event -> {
                                 Gson gson = new Gson();
@@ -77,16 +88,17 @@ public class RemedyTicketsCollector implements Collector {
                                 sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
                                 eventSinkAPI.emit(sendEventToTSI.toString());
                             });
-                            System.err.println(eventList.size() + " Events successfuly ingested for DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime());
+                            System.err.println(eventList.size() + " Events successfuly ingested out of total " + nMatches + " events in iteration " + iteration);
                         } else {
                             System.err.println(eventList.size() + " Events found for the interval, DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime());
                             eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, Constants.REMEDY_IM_NO_DATA_AVAILABLE, Event.EventSeverity.INFO.toString()));
                         }
-                        if (nMatches.longValue() <= (startFrom + chunkSize)) {
+
+                        if (nMatches.longValue() <= (totalRecordsRead + chunkSize)) {
                             readNext = false;
                         }
                         iteration++;
-                        startFrom = startFrom + chunkSize;
+                        startFrom = totalRecordsRead;
                     }
 
                 } catch (Exception e) {

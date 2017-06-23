@@ -34,8 +34,7 @@
       "title": "Port",
       "name": "port",
       "description": "The API port of BMC Remedy server",
-      "type": "integer",
-      "default": 0,
+      "type": "String",
       "required": false
     },
     {

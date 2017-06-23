@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class RemedyPluginConfigurationItem {
 
     private String hostName;
-    private Integer port;
+    private String port;
     private String userName;
     private String password;
     private Long pollInterval;
@@ -43,11 +43,15 @@ public class RemedyPluginConfigurationItem {
         this.hostName = hostName;
     }
 
-    public Integer getPort() {
+    public String getPort() {
         return port;
     }
 
-    public String getUserName() {
+    public void setPort(String port) {
+		this.port = port;
+	}
+
+	public String getUserName() {
         return userName;
     }
 
