@@ -17,6 +17,10 @@
 			"CI": "@CI",
 			"Priority": "@PRIORITY",
 			"PriorityWeight": "@WEIGHT",
+			"CoordinatorGroup":"@COORDINATOR_GRP",
+			"ChangeLocation":"@CHANGE_LOC",
+			"RiskLevel":"@RISK_LEVEL",
+			"ManagerGroup":"@MANAGER_GROUP",
 			"app_id": "Remedy TSI Integration"
 		},
 		"createdAt": "@CREATED_AT",
@@ -73,5 +77,9 @@
 	"@TITLE":{"fieldId":1000000151},
 	"@ASSIGNEE":{"fieldId":303124400},
 	"@CI":{"fieldId":301556800},
-	"@CREATED_AT":{"fieldId":6}
+	"@CREATED_AT":{"fieldId":3},
+	"@COORDINATOR_GRP":{"fieldId":1000003229},
+	"@CHANGE_LOC":{"fieldId":303935100},
+	"@RISK_LEVEL":{"fieldId":1000000180},
+	"@MANAGER_GROUP":{"fieldId":1000000015}
 }

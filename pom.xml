@@ -20,7 +20,7 @@
 		<dependency>
 			<groupId>com.boundary</groupId>
 			<artifactId>java-plugin-sdk</artifactId>
-			<version>0.6.3</version>
+			<version>0.6.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bmc.truesight.saas</groupId>
