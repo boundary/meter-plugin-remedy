@@ -73,7 +73,9 @@ public class RemedyTicketsCollector implements Collector {
                     template.getConfig().setEndDateTime(new Date(currentMili));
                     boolean exceededMaxServerEntries = false;
                     System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime() + ")");
-                    isConnectionOpen = eventSinkAPI.openRPCConnection();
+                    isConnectionOpen = eventSinkAPI.openConnection();
+                    System.err.println("JSON RPC connection open success status : " + isConnectionOpen);
+                    int totalSuccessfulIngestion = 0;
                     if (isConnectionOpen) {
                         while (readNext) {
                             System.err.println("Iteration : " + iteration);
@@ -101,6 +103,7 @@ public class RemedyTicketsCollector implements Collector {
                                     eventsList.add(sendEventToTSI.toString());
                                 });
                                 int succ = eventSinkAPI.emit(eventsList);
+                                totalSuccessfulIngestion += succ;
                                 System.err.println(succ + " Events successfuly ingested out of total " + nMatches + " events in iteration " + iteration);
                             } else {
                                 System.err.println(eventList.size() + " Events found for the interval, DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime());
@@ -118,31 +121,24 @@ public class RemedyTicketsCollector implements Collector {
                             iteration++;
                             startFrom = totalRecordsRead;
                         }//each chunk iteration
-                        //close the RPC connection 
-                        if (eventSinkAPI.closeRPCConnection()) {
-                        	isConnectionOpen = false;
-                        }
+                        System.err.println("__________________________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
                     }
-
                 } catch (Exception e) {
                     System.err.println("Exception occure while fetching the data" + e.getMessage());
                     e.printStackTrace();
-                    eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(),Event.EventSeverity.ERROR.toString()));
+                    eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
                 } finally {
                     reader.logout(arServerContext);
                     if (isConnectionOpen) {
-                        eventSinkAPI.closeRPCConnection();
+                    	System.err.println("JSON RPC connection close success status : " + isConnectionOpen);
+                        eventSinkAPI.closeConnection();
                     }
                 }
 
                 Thread.sleep((config.getPollInterval() * 60 * 1000));
             } catch (InterruptedException ex) {
-                eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(),
-                        Event.EventSeverity.ERROR.toString()));
-            } finally {
-
+                eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
             }
-
         }
     }//infinite while loop end
 
