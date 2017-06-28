@@ -121,7 +121,7 @@ public class RemedyTicketsCollector implements Collector {
                             iteration++;
                             startFrom = totalRecordsRead;
                         }//each chunk iteration
-                        System.err.println("__________________________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
+                        System.err.println("__________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
                     }
                 } catch (Exception e) {
                     System.err.println("Exception occure while fetching the data" + e.getMessage());
