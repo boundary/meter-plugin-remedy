@@ -1,6 +1,5 @@
 {
 	"config": {
-		"chunkSize":1000,
   		"conditionFields":[1000000564,3,6],
   		"queryStatusList":[0,5],
   		"retryConfig":3,
