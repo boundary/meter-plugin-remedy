@@ -21,11 +21,13 @@ The plugin allows multiple Remedy instances data to be collected with independen
 
 * [How to install java?](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html)
 
-
 #### TrueSight Pulse Meter versions v4.6.2-835 or later
 
 - To install new meter go to Settings->Installation or [see instructions](https://help.boundary.com/hc/en-us/sections/200634331-Installation).
 - To upgrade the meter to the latest version - [see instructions](https://help.boundary.com/hc/en-us/articles/201573102-Upgrading-the-Boundary-Meter).
+
+#### Ingesting historical Remedy data
+If you want to import historical Remedy data into TrueSight Intelligence, it is recommended that you ingest the historical data before configuring the plugin for data collection. For more information, see [Remedy bulk ingestion on GitHub](https://github.com/boundary/remedy-tsi-bulkingestion-script).
 
 #### Plugin Configuration Fields
 
