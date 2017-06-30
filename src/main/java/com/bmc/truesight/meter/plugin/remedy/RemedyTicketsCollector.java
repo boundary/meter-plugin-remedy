@@ -17,6 +17,7 @@ import com.bmc.truesight.saas.remedy.integration.RemedyReader;
 import com.bmc.truesight.saas.remedy.integration.adapter.RemedyEntryEventAdapter;
 import com.bmc.truesight.saas.remedy.integration.beans.TSIEvent;
 import com.bmc.truesight.saas.remedy.integration.beans.Template;
+import com.bmc.truesight.saas.remedy.integration.exception.RemedyReadFailedException;
 import com.bmc.truesight.saas.remedy.integration.impl.GenericRemedyReader;
 import com.boundary.plugin.sdk.Collector;
 import com.boundary.plugin.sdk.Event;
@@ -59,6 +60,7 @@ public class RemedyTicketsCollector implements Collector {
                 RemedyReader reader = new GenericRemedyReader();
                 ARServerUser arServerContext = reader.createARServerContext(config.getHostName(), Integer.getInteger(config.getPort()), config.getUserName(), config.getPassword());
                 boolean isConnectionOpen = false;
+                List<TSIEvent> eventList = null;
                 try {
                     reader.login(arServerContext);
                     int chunkSize = template.getConfig().getChunkSize();
@@ -72,24 +74,24 @@ public class RemedyTicketsCollector implements Collector {
                     template.getConfig().setStartDateTime(new Date(pastMili));
                     template.getConfig().setEndDateTime(new Date(currentMili));
                     boolean exceededMaxServerEntries = false;
-                    System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime() + ")");
+                    System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                     isConnectionOpen = eventSinkAPI.openConnection();
                     System.err.println("JSON RPC connection open success status : " + isConnectionOpen);
                     int totalSuccessfulIngestion = 0;
                     if (isConnectionOpen) {
                         while (readNext) {
                             System.err.println("Iteration : " + iteration);
-                            List<TSIEvent> eventList = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
+                            eventList = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
                             exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
                             totalRecordsRead += eventList.size();
                             if (eventList.size() < chunkSize && totalRecordsRead < nMatches.intValue()
                                     && exceededMaxServerEntries) {
-                                System.err.println(" Request Sent to remedy (startFrom:" + startFrom + ",chunkSize:" + chunkSize + "), Response Got(RecordsRead:" + eventList.size()
+                                System.err.println("Request Sent to remedy (startFrom:" + startFrom + ",chunkSize:" + chunkSize + "), Response Got(RecordsRead:" + eventList.size()
                                         + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
-                                System.err.println(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + eventList.size());
+                                System.err.println("Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + eventList.size());
                                 chunkSize = eventList.size();
                             } else if (eventList.size() <= chunkSize) {
-                                System.err.println(" Request Sent to remedy (startFrom:" + startFrom + ", chunkSize:" + chunkSize + "), Response Got (RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
+                                System.err.println("Request Sent to remedy (startFrom:" + startFrom + ", chunkSize:" + chunkSize + "), Response Got (RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
                             }
 
                             if (eventList.size() > 0) {
@@ -106,7 +108,7 @@ public class RemedyTicketsCollector implements Collector {
                                 totalSuccessfulIngestion += succ;
                                 System.err.println(succ + " Events successfuly ingested out of total " + nMatches + " events in iteration " + iteration);
                             } else {
-                                System.err.println(eventList.size() + " Events found for the interval, DateTime:" + template.getConfig().getStartDateTime() + " to DateTime:" + template.getConfig().getEndDateTime());
+                                System.err.println(eventList.size() + " Events found for the interval, DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()));
                                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, Constants.REMEDY_IM_NO_DATA_AVAILABLE, Event.EventSeverity.INFO.toString()));
                             }
 
@@ -123,14 +125,16 @@ public class RemedyTicketsCollector implements Collector {
                         }//each chunk iteration
                         System.err.println("__________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
                     }
+                } catch (RemedyReadFailedException e) {
+                    System.err.println("Reading Records from Remedy Failed, Reason :" + e.getMessage());
                 } catch (Exception e) {
-                    System.err.println("Exception occure while fetching the data" + e.getMessage());
+                    System.err.println("Exception occured while fetching the data" + e.getMessage());
                     e.printStackTrace();
                     eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
                 } finally {
                     reader.logout(arServerContext);
                     if (isConnectionOpen) {
-                    	System.err.println("JSON RPC connection close success status : " + isConnectionOpen);
+                        System.err.println("JSON RPC connection close success status : " + isConnectionOpen);
                         eventSinkAPI.closeConnection();
                     }
                 }
