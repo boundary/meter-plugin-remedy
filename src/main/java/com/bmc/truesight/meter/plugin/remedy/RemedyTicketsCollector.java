@@ -76,7 +76,11 @@ public class RemedyTicketsCollector implements Collector {
                     boolean exceededMaxServerEntries = false;
                     System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                     isConnectionOpen = eventSinkAPI.openConnection();
-                    System.err.println("JSON RPC connection open success status : " + isConnectionOpen);
+                    if (isConnectionOpen) {
+                        System.err.println("JSON RPC Socket connection Successful");
+                    } else {
+                        System.err.println("JSON RPC Socket connection failed");
+                    }
                     int totalSuccessfulIngestion = 0;
                     if (isConnectionOpen) {
                         while (readNext) {
@@ -134,8 +138,12 @@ public class RemedyTicketsCollector implements Collector {
                 } finally {
                     reader.logout(arServerContext);
                     if (isConnectionOpen) {
-                        System.err.println("JSON RPC connection close success status : " + isConnectionOpen);
-                        eventSinkAPI.closeConnection();
+                        boolean isConnectionClosed = eventSinkAPI.closeConnection();
+                        if (isConnectionClosed) {
+                            System.err.println("JSON RPC Socket connection successfuly closed");
+                        } else {
+                            System.err.println("Closing JSON RPC Socket connection failed");
+                        }
                     }
                 }
 
