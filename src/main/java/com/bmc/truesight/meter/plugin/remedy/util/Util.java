@@ -1,8 +1,11 @@
 package com.bmc.truesight.meter.plugin.remedy.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +27,13 @@ import com.google.gson.JsonObject;
  */
 public class Util {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(Util.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
+
+    public static String dateToString(Date date) {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return DATE_FORMAT.format(date);
+    }
 
     public static String getFieldValues(String fieldValue[]) {
         StringBuffer fieldValues = new StringBuffer();

@@ -46,5 +46,5 @@ The plugin allows multiple Remedy instances data to be collected with independen
  2. [Change Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/changeDefaultTemplate.json)
 
 ### References
-[Getting Remedy Data ](https://docs.bmc.com/docs/display/bti10/Getting+Remedy+data) 
+[Remedy Plugin Documentation](https://docs.bmc.com/docs/display/bti10/Remedy+Plugin) 
 
