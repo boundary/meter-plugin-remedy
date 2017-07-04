@@ -86,7 +86,14 @@ public class Util {
     public static Template updateConfiguration(Template template, RemedyPluginConfigurationItem config) {
         Configuration configuration = template.getConfig();
         configuration.setRemedyHostName(config.getHostName());
-        configuration.setRemedyPort(Integer.getInteger(config.getPort()));
+        if (config.getPort() != null && !config.getPort().trim().isEmpty()) {
+            try {
+                Integer port = Integer.parseInt(config.getPort());
+                configuration.setRemedyPort(port);
+            } catch (NumberFormatException ex) {
+                System.err.println("Port (" + config.getPort() + ") is not a valid port, using default port.");
+            }
+        }
         configuration.setRemedyUserName(config.getUserName());
         configuration.setRemedyPassword(config.getPassword());
         //template.setConfig(configuration);
