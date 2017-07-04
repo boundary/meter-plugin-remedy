@@ -1,6 +1,6 @@
 {
   "name": "BMC Remedy Plugin",
-  "version": "0.9.0",
+  "version": "0.9.0_1",
   "meterVersionRequired": "4.6.2-839",
   "unsupportedPlatforms": [],
   "tags": "remedy",
