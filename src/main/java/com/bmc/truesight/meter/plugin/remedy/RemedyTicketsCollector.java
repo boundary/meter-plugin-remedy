@@ -77,7 +77,7 @@ public class RemedyTicketsCollector implements Collector {
                     System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                     isConnectionOpen = eventSinkAPI.openConnection();
                     if (isConnectionOpen) {
-                        System.err.println("JSON RPC Socket connection Successful");
+                        System.err.println("JSON RPC Socket connection successful");
                     } else {
                         System.err.println("JSON RPC Socket connection failed");
                     }
@@ -130,9 +130,9 @@ public class RemedyTicketsCollector implements Collector {
                         System.err.println("__________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
                     }
                 } catch (RemedyLoginFailedException e) {
-                    System.err.println("Remedy Login failed :" + e.getMessage());
+                    System.err.println("Remedy login failed :" + e.getMessage());
                 } catch (RemedyReadFailedException e) {
-                    System.err.println("Reading Records from Remedy Failed, Reason :" + e.getMessage());
+                    System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
                 } catch (Exception e) {
                     System.err.println("Exception occured while fetching the data" + e.getMessage());
                     e.printStackTrace();

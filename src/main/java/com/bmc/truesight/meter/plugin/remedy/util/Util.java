@@ -91,7 +91,7 @@ public class Util {
                 Integer port = Integer.parseInt(config.getPort());
                 configuration.setRemedyPort(port);
             } catch (NumberFormatException ex) {
-                System.err.println("Port (" + config.getPort() + ") is not a valid port, port setting skipped ");
+                System.err.println("Port (" + config.getPort() + ") is not a valid port, using default port.");
             }
         }
         configuration.setRemedyUserName(config.getUserName());
