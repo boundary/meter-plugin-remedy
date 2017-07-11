@@ -45,7 +45,9 @@ public class PluginTemplateValidator implements TemplateValidator {
         // validate payload configuration
         Map<String, String> properties = payload.getProperties();
         for (String key : properties.keySet()) {
-
+        	if(!StringUtil.isValidJavaIdentifier(key)){
+        		throw new ValidationException(StringUtil.format(Constants.PROPERTY_NAME_CONTAINS_SPACE, new Object[]{key.trim()}));
+        	}
             if (properties.get(key).startsWith("@") && !fieldItemMap.containsKey(properties.get(key))) {
                 throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{properties.get(key)}));
             }

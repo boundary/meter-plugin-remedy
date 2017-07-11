@@ -37,7 +37,7 @@ public class Util {
 
     public static String getFieldValues(String fieldValue[]) {
         StringBuffer fieldValues = new StringBuffer();
-        if (fieldValue != null && fieldValue.length > 1) {
+        if (fieldValue != null && fieldValue.length > 0) {
             for (String val : fieldValue) {
                 fieldValues.append(val);
             }
