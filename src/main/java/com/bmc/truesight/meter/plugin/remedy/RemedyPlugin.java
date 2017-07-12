@@ -80,44 +80,47 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
     @Override
     public void run() {
         ArrayList<RemedyPluginConfigurationItem> items = configuration.getItems();
-        items.forEach((config) -> {
-            boolean isValidJson = true;
-            //PARSING THE JSON STRING
-            //System.err.println("parsing param.json data");
-            TemplateParser templateParser = new GenericTemplateParser();
-            TemplatePreParser templatePreParser = new GenericTemplatePreParser();
-            Template template = null;
-            try {
-            	Template defaultTemplate=new Template();
-            	if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
-            		defaultTemplate = templatePreParser.loadDefaults(ARServerForm.INCIDENT_FORM);
-            	}else if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
-            		defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
-            	}
-                template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
-            } catch (ParsingException ex) {
-                System.err.println("Parsing failed - " + ex.getMessage());
-                eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                isValidJson = false;
-            }
-            TemplateValidator templateValidator = new PluginTemplateValidator();
-            try {
-                templateValidator.validate(template);
-            } catch (ValidationException ex) {
-                eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                isValidJson = false;
-            }
-            if (isValidJson) {
-            	if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
-                    dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
-                }else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
-                	dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.INCIDENT_FORM));
+        if (items.size() > 0) {
+            items.forEach((config) -> {
+                boolean isValidTemplate = true;
+                //PARSING THE JSON STRING
+                //System.err.println("parsing param.json data");
+                TemplateParser templateParser = new GenericTemplateParser();
+                TemplatePreParser templatePreParser = new GenericTemplatePreParser();
+                Template template = null;
+                try {
+                    Template defaultTemplate = new Template();
+                    if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
+                        defaultTemplate = templatePreParser.loadDefaults(ARServerForm.INCIDENT_FORM);
+                    } else if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
+                        defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
+                    }
+                    template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
+                } catch (ParsingException ex) {
+                    System.err.println("Parsing failed - " + ex.getMessage());
+                    eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
+                    isValidTemplate = false;
                 }
-            	
-                
-            }
-        });
-        dispatcher.run();
+                TemplateValidator templateValidator = new PluginTemplateValidator();
+                try {
+                    templateValidator.validate(template);
+
+                } catch (ValidationException ex) {
+                    System.err.println("Validation failed - " + ex.getMessage());
+                    eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
+                    isValidTemplate = false;
+                }
+                if (isValidTemplate) {
+                    if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
+                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
+                    } else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
+                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.INCIDENT_FORM));
+                    }
+
+                }
+            });
+            dispatcher.run();
+        }
     }
 
     public static void main(String[] args) {
