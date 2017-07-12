@@ -82,7 +82,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
         ArrayList<RemedyPluginConfigurationItem> items = configuration.getItems();
         if (items.size() > 0) {
             items.forEach((config) -> {
-                boolean isValidJson = true;
+                boolean isValidTemplate = true;
                 //PARSING THE JSON STRING
                 //System.err.println("parsing param.json data");
                 TemplateParser templateParser = new GenericTemplateParser();
@@ -99,7 +99,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 } catch (ParsingException ex) {
                     System.err.println("Parsing failed - " + ex.getMessage());
                     eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                    isValidJson = false;
+                    isValidTemplate = false;
                 }
                 TemplateValidator templateValidator = new PluginTemplateValidator();
                 try {
@@ -108,9 +108,9 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 } catch (ValidationException ex) {
                     System.err.println("Validation failed - " + ex.getMessage());
                     eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                    isValidJson = false;
+                    isValidTemplate = false;
                 }
-                if (isValidJson) {
+                if (isValidTemplate) {
                     if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
                     } else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
