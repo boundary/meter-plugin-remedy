@@ -56,104 +56,107 @@ public class RemedyTicketsCollector implements Collector {
         EventSinkAPI eventSinkAPI = new EventSinkAPI();
         EventSinkStandardOutput eventSinkAPIstd = new EventSinkStandardOutput();
         while (true) {
+            RemedyReader reader = new GenericRemedyReader();
+            ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
+            boolean isConnectionOpen = false;
+            List<TSIEvent> eventList = null;
             try {
-                RemedyReader reader = new GenericRemedyReader();
-                ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
-                boolean isConnectionOpen = false;
-                List<TSIEvent> eventList = null;
-                try {
-                    reader.login(arServerContext);
-                    int chunkSize = template.getConfig().getChunkSize();
-                    int startFrom = 0;
-                    int iteration = 1;
-                    int totalRecordsRead = 0;
-                    OutputInteger nMatches = new OutputInteger();
-                    boolean readNext = true;
-                    Long currentMili = Calendar.getInstance().getTimeInMillis();
-                    Long pastMili = currentMili - (config.getPollInterval() * 60 * 1000);
-                    template.getConfig().setStartDateTime(new Date(pastMili));
-                    template.getConfig().setEndDateTime(new Date(currentMili));
-                    boolean exceededMaxServerEntries = false;
-                    System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
-                    isConnectionOpen = eventSinkAPI.openConnection();
-                    if (isConnectionOpen) {
-                        System.err.println("JSON RPC Socket connection successful");
-                    } else {
-                        System.err.println("JSON RPC Socket connection failed");
-                    }
-                    int totalSuccessfulIngestion = 0;
-                    if (isConnectionOpen) {
-                        while (readNext) {
-                            System.err.println("Iteration : " + iteration);
-                            eventList = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
-                            exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
-                            totalRecordsRead += eventList.size();
-                            if (eventList.size() < chunkSize && totalRecordsRead < nMatches.intValue()
-                                    && exceededMaxServerEntries) {
-                                System.err.println("Request Sent to remedy (startFrom:" + startFrom + ",chunkSize:" + chunkSize + "), Response Got(RecordsRead:" + eventList.size()
-                                        + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
-                                System.err.println("Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + eventList.size());
-                                chunkSize = eventList.size();
-                            } else if (eventList.size() <= chunkSize) {
-                                System.err.println("Request Sent to remedy (startFrom:" + startFrom + ", chunkSize:" + chunkSize + "), Response Got (RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
-                            }
-
-                            if (eventList.size() > 0) {
-                                List<String> eventsList = new ArrayList<>();
-                                eventList.forEach(event -> {
-                                    Gson gson = new Gson();
-                                    String eventJson = gson.toJson(event, Object.class);
-                                    StringBuilder sendEventToTSI = new StringBuilder();
-                                    sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
-                                    // eventSinkAPI.emit(sendEventToTSI.toString());
-                                    eventsList.add(sendEventToTSI.toString());
-                                });
-                                int succ = eventSinkAPI.emit(eventsList);
-                                totalSuccessfulIngestion += succ;
-                                System.err.println(succ + " Events successfuly ingested out of total " + nMatches + " events in iteration " + iteration);
-                            } else {
-                                System.err.println(eventList.size() + " Events found for the interval, DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()));
-                                eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, Constants.REMEDY_IM_NO_DATA_AVAILABLE, Event.EventSeverity.INFO.toString()));
-                            }
-
-                            if (totalRecordsRead < nMatches.longValue()
-                                    && (totalRecordsRead + chunkSize) > nMatches.longValue()) {
-                                // assuming the long value would be in int range
-                                // always
-                                chunkSize = (int) (nMatches.longValue() - totalRecordsRead);
-                            } else if (totalRecordsRead >= nMatches.longValue()) {
-                                readNext = false;
-                            }
-                            iteration++;
-                            startFrom = totalRecordsRead;
-                        }//each chunk iteration
-                        System.err.println("__________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
-                    }
-                } catch (RemedyLoginFailedException e) {
-                    System.err.println("Remedy login failed :" + e.getMessage());
-                } catch (RemedyReadFailedException e) {
-                    System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
-                } catch (Exception e) {
-                    System.err.println("Exception occured while fetching the data" + e.getMessage());
-                    e.printStackTrace();
-                    eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
-                } finally {
-                    reader.logout(arServerContext);
-                    if (isConnectionOpen) {
-                        boolean isConnectionClosed = eventSinkAPI.closeConnection();
-                        if (isConnectionClosed) {
-                            System.err.println("JSON RPC Socket connection successfuly closed");
-                        } else {
-                            System.err.println("Closing JSON RPC Socket connection failed");
+                reader.login(arServerContext);
+                int chunkSize = template.getConfig().getChunkSize();
+                int startFrom = 0;
+                int iteration = 1;
+                int totalRecordsRead = 0;
+                OutputInteger nMatches = new OutputInteger();
+                boolean readNext = true;
+                Long currentMili = Calendar.getInstance().getTimeInMillis();
+                Long pastMili = currentMili - (config.getPollInterval() * 60 * 1000);
+                template.getConfig().setStartDateTime(new Date(pastMili));
+                template.getConfig().setEndDateTime(new Date(currentMili));
+                boolean exceededMaxServerEntries = false;
+                System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
+                isConnectionOpen = eventSinkAPI.openConnection();
+                if (isConnectionOpen) {
+                    System.err.println("JSON RPC Socket connection successful");
+                } else {
+                    System.err.println("JSON RPC Socket connection failed");
+                    break;
+                }
+                int totalSuccessfulIngestion = 0;
+                if (isConnectionOpen) {
+                    while (readNext) {
+                        System.err.println("Iteration : " + iteration);
+                        eventList = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
+                        exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
+                        totalRecordsRead += eventList.size();
+                        if (eventList.size() < chunkSize && totalRecordsRead < nMatches.intValue()
+                                && exceededMaxServerEntries) {
+                            System.err.println("Request Sent to remedy (startFrom:" + startFrom + ",chunkSize:" + chunkSize + "), Response Got(RecordsRead:" + eventList.size()
+                                    + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
+                            System.err.println("Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + eventList.size());
+                            chunkSize = eventList.size();
+                        } else if (eventList.size() <= chunkSize) {
+                            System.err.println("Request Sent to remedy (startFrom:" + startFrom + ", chunkSize:" + chunkSize + "), Response Got (RecordsRead:" + eventList.size() + ", totalRecordsRead:" + totalRecordsRead + ", recordsAvailable:" + nMatches.intValue() + ")");
                         }
+
+                        if (eventList.size() > 0) {
+                            List<String> eventsList = new ArrayList<>();
+                            eventList.forEach(event -> {
+                                Gson gson = new Gson();
+                                String eventJson = gson.toJson(event, Object.class);
+                                StringBuilder sendEventToTSI = new StringBuilder();
+                                sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
+                                // eventSinkAPI.emit(sendEventToTSI.toString());
+                                eventsList.add(sendEventToTSI.toString());
+                            });
+                            int succ = eventSinkAPI.emit(eventsList);
+                            totalSuccessfulIngestion += succ;
+                            System.err.println(succ + " Events successfuly ingested out of total " + nMatches + " events in iteration " + iteration);
+                        } else {
+                            System.err.println(eventList.size() + " Events found for the interval, DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()));
+                            eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, Constants.REMEDY_IM_NO_DATA_AVAILABLE, Event.EventSeverity.INFO.toString()));
+                        }
+
+                        if (totalRecordsRead < nMatches.longValue()
+                                && (totalRecordsRead + chunkSize) > nMatches.longValue()) {
+                            // assuming the long value would be in int range
+                            // always
+                            chunkSize = (int) (nMatches.longValue() - totalRecordsRead);
+                        } else if (totalRecordsRead >= nMatches.longValue()) {
+                            readNext = false;
+                        }
+                        iteration++;
+                        startFrom = totalRecordsRead;
+                    }//each chunk iteration
+                    System.err.println("__________ [Total successful ingestion: " + totalSuccessfulIngestion + ", Total Records from Remedy :" + nMatches.longValue() + ", total iteration " + (iteration - 1) + " ]_____________");
+                }
+            } catch (RemedyLoginFailedException e) {
+                System.err.println("Remedy login failed :" + e.getMessage());
+                break;
+            } catch (RemedyReadFailedException e) {
+                System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
+                break;
+            } catch (Exception e) {
+                System.err.println("Exception occured while fetching the data" + e.getMessage());
+                eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
+                break;
+            } finally {
+                reader.logout(arServerContext);
+                if (isConnectionOpen) {
+                    boolean isConnectionClosed = eventSinkAPI.closeConnection();
+                    if (isConnectionClosed) {
+                        System.err.println("JSON RPC Socket connection successfuly closed");
+                    } else {
+                        System.err.println("Closing JSON RPC Socket connection failed");
                     }
                 }
-
+            }
+            try {
                 Thread.sleep((config.getPollInterval() * 60 * 1000));
             } catch (InterruptedException ex) {
+                System.err.println("Interrupted Exception :" + ex.getMessage());
                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
             }
-        }
-    }//infinite while loop end
+        }//infinite while loop end
+    }
 
 }

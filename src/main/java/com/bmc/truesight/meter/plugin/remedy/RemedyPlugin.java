@@ -80,9 +80,10 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
     @Override
     public void run() {
         ArrayList<RemedyPluginConfigurationItem> items = configuration.getItems();
-        if (items.size() > 0) {
-            items.forEach((config) -> {
-                boolean isValidTemplate = true;
+        if (items != null && items.size() > 0) {
+            for (RemedyPluginConfigurationItem config : items) {
+                boolean isTemplateParsingSuccessful = false;
+                boolean isTemplateValidationSuccessful = false;
                 //PARSING THE JSON STRING
                 //System.err.println("parsing param.json data");
                 TemplateParser templateParser = new GenericTemplateParser();
@@ -96,29 +97,37 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
                     }
                     template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
+                    isTemplateParsingSuccessful = true;
                 } catch (ParsingException ex) {
                     System.err.println("Parsing failed - " + ex.getMessage());
-                    eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                    isValidTemplate = false;
+                } catch (Exception ex) {
+                    System.err.println("Parsing failed - " + ex.getMessage());
                 }
-                TemplateValidator templateValidator = new PluginTemplateValidator();
-                try {
-                    templateValidator.validate(template);
 
-                } catch (ValidationException ex) {
-                    System.err.println("Validation failed - " + ex.getMessage());
-                    eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
-                    isValidTemplate = false;
+                if (isTemplateParsingSuccessful) {
+                    TemplateValidator templateValidator = new PluginTemplateValidator();
+                    try {
+                        templateValidator.validate(template);
+                        isTemplateValidationSuccessful = true;
+                    } catch (ValidationException ex) {
+                        System.err.println("Validation failed - " + ex.getMessage());
+                    } catch (Exception ex) {
+                        System.err.println("Validation failed - " + ex.getMessage());
+                    }
+                } else {
+                    System.exit(1);
                 }
-                if (isValidTemplate) {
+				
+                if (isTemplateValidationSuccessful) {
                     if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
                     } else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.INCIDENT_FORM));
                     }
-
+                } else {
+                    System.exit(1);
                 }
-            });
+            }
             dispatcher.run();
         }
     }
