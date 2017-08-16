@@ -187,9 +187,9 @@ public class RemedyTicketsCollector implements Collector {
                     
                     System.err.println("____________"+name+" ingestion to truesight intelligence final status: Remedy Records = "+nMatches.longValue()+", Valid Records Sent = "+validRecords+", Successful = "+totalSuccessful+" , Failure = "+totalFailure+" ______");
                     if (totalFailure > 0) {
-                    	System.err.println("____________ Errors (No of times seen), [Reference Ids] ______");
+                    	System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {
-                        	System.err.println(msg+" ("+errorsMap.get(msg).size()+"), "+errorsMap.get(msg));
+                        	  System.err.println("______ "+errorsMap.get(msg).size()+"    , "+msg+",  "+errorsMap.get(msg));
                         });
 
                     }
