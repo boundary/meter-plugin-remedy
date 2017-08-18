@@ -1,11 +1,14 @@
 package com.bmc.truesight.meter.plugin.remedy.beans;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RpcResponse {
 
 	private String jsonrpc;
 	private int id;
 	private RpcResult result;
-	private String error;
+	
 	public String getJsonrpc() {
 		return jsonrpc;
 	}
@@ -23,12 +26,6 @@ public class RpcResponse {
 	}
 	public void setResult(RpcResult result) {
 		this.result = result;
-	}
-	public String getError() {
-		return error;
-	}
-	public void setError(String error) {
-		this.error = error;
 	}
 	
 }

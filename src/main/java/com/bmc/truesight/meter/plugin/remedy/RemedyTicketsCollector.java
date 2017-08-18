@@ -147,8 +147,13 @@ public class RemedyTicketsCollector implements Collector {
                             String resultJson = eventSinkAPI.emit(sendEventToTSI.toString());
                             ObjectMapper mapper = new ObjectMapper();
                             RpcResponse rpcResponse =mapper.readValue(resultJson, RpcResponse.class);
-                            if(rpcResponse.getResult()==null || rpcResponse.getError()!=null){
-                            	System.err.println("Event ingestion failed ->"+rpcResponse.getError());
+                            if(rpcResponse.getResult() == null){
+                            	totalFailure += eventsList.size();
+                            	addEventIdsToErrorMap(eventsList, errorsMap,"Event ingestion failed with no response from meter");
+                            }else if(rpcResponse.getResult().getError() != null){
+                            	totalFailure += eventsList.size();
+                            	String msg = "Event ingestion failed with status code "+rpcResponse.getResult().getError().getCode()+","+rpcResponse.getResult().getError().getMessage();
+                            	addEventIdsToErrorMap(eventsList, errorsMap, msg);
                             }else{
                             	Result result= rpcResponse.getResult().getResult();
                             	if (result.getAccepted() != null) {
@@ -224,4 +229,24 @@ public class RemedyTicketsCollector implements Collector {
         }//infinite while loop end
     }
 
+    private void addEventIdsToErrorMap(List<TSIEvent> eventsList, Map<String,List<String>> errorsMap,String msg){
+    	eventsList.forEach(event->{
+    		String id;
+        	if(arServerForm == ARServerForm.INCIDENT_FORM){
+        		id = event.getProperties().get(Constants.PROPERTY_INCIDENTNO);
+            }else{
+            	id = event.getProperties().get(Constants.PROPERTY_CHANGEID);
+            }
+            if (errorsMap.containsKey(msg)) {
+            	List<String> errorsId = errorsMap.get(msg);
+            	errorsId.add(id);
+                errorsMap.put(msg, errorsId);
+            } else {
+            	List<String> errorsId = new ArrayList<String>();
+            	errorsId.add(id);
+                errorsMap.put(msg, errorsId);
+            }
+    	});
+    	
+    }
 }
