@@ -34,11 +34,18 @@ public class PluginTemplateValidator implements TemplateValidator {
                     new Object[]{payload.getTitle()}));
         }
 
-        // validate payload configuration
         for (String fpField : payload.getFingerprintFields()) {
-            if (fpField != null && fpField.startsWith("@") && !fieldItemMap.containsKey(fpField)) {
-                throw new ValidationException(
-                        StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{fpField}));
+            if (fpField != null) {
+                if (fpField.startsWith("@")) {
+                    String field = fpField.substring(1);
+                    if (!Constants.FINGERPRINT_EVENT_FIELDS.contains(field)) {
+                        throw new ValidationException(StringUtil.format(Constants.EVENT_FIELD_MISSING, new Object[]{field, Constants.FINGERPRINT_EVENT_FIELDS}));
+                    }
+                } else {
+                    if (!payload.getProperties().containsKey(fpField)) {
+                        throw new ValidationException(StringUtil.format(Constants.EVENT_PROPERTY_FIELD_MISSING, new Object[]{fpField}));
+                    }
+                }
             }
         }
         
@@ -48,8 +55,12 @@ public class PluginTemplateValidator implements TemplateValidator {
             throw new ValidationException(StringUtil.format(Constants.PROPERTY_FIELD_COUNT_EXCEEDS, new Object[]{properties.keySet().size(), Constants.MAX_PROPERTY_FIELD_SUPPORTED}));
         }
         
-        // validate payload configuration
-        properties = payload.getProperties();
+        if (properties.containsKey("app_id")) {
+            String appId = properties.get("app_id");
+            if (!isValidAppId(appId)) {
+                throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_INVALID, new Object[]{appId}));
+            }
+        }
         for (String key : properties.keySet()) {
         	if(!StringUtil.isValidJavaIdentifier(key)){
         		throw new ValidationException(StringUtil.format(Constants.PROPERTY_NAME_INVALID, new Object[]{key.trim()}));
@@ -100,5 +111,12 @@ public class PluginTemplateValidator implements TemplateValidator {
         }
         return true;
     }
-
+    private boolean isValidAppId(String inputString) {
+        for (char c : inputString.toCharArray()) {
+            if (Constants.SPECIAL_CHARACTOR.indexOf(c, 0) >= 0) {
+                return false;
+            }
+        };
+        return true;
+    }
 }

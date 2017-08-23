@@ -14,6 +14,7 @@ public class RemedyPluginConfigurationItem {
     private String password;
     private Long pollInterval;
     private String requestType;
+    private String appId;
     private String fields[];
 
     public String getRequestType() {
@@ -81,4 +82,12 @@ public class RemedyPluginConfigurationItem {
     public void setPollInterval(Long pollInterval) {
         this.pollInterval = pollInterval;
     }
+
+	public String getAppId() {
+		return appId;
+	}
+
+	public void setAppId(String appId) {
+		this.appId = appId;
+	}
 }

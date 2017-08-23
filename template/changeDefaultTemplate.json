@@ -7,7 +7,7 @@
 	},
 	"eventDefinition": {
 		"title": "@TITLE",
-		"fingerprintFields": ["ChangeID","createdAt"],
+		"fingerprintFields": ["ChangeID"],
 		"severity": "@SEVERITY",
 		"status": "@STATUS",
 		"properties": {

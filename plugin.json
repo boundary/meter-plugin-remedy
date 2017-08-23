@@ -53,7 +53,15 @@
       "type": "password",
       "required": false
     },
-	{
+    {
+      "title": "App Id",
+      "name": "appId",
+      "description": "App Id",
+      "default": "Remedy",
+      "type": "string",
+      "required": true
+    },
+    {
       "title": "Ticket Type",
       "name": "requestType",
       "description": "Request Type",
@@ -72,7 +80,6 @@
       "default": [ "{",
         "\t\"eventDefinition\": {",
         "\t\t\"properties\": {",
-        "\t\t\t\"app_id\": \"meter-plugin-remedy\"",
         "\t\t}",
         "\t}",
         "}"],
