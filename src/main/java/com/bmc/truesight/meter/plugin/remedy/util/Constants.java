@@ -12,7 +12,7 @@ public class Constants {
     public static final String REMEDY_PROXY_EVENT_JSON_END_STRING = " } }";
     public final static String REMEDY_IM_NO_DATA_AVAILABLE = "No data available for incident management";
     public final static String REMEDY_CM_NO_DATA_AVAILABLE = "No data available for change management";
-    public static final int CHUNK_SIZE = 50;
+    public static final int CHUNK_SIZE = 100;
 	public static final String PROPERTY_INCIDENTNO = "IncidentNumber";
 	public static final String PROPERTY_CHANGEID = "ChangeID";
 

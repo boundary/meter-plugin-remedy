@@ -84,6 +84,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
             for (RemedyPluginConfigurationItem config : items) {
                 boolean isTemplateParsingSuccessful = false;
                 boolean isTemplateValidationSuccessful = false;
+                
                 //PARSING THE JSON STRING
                 //System.err.println("parsing param.json data");
                 TemplateParser templateParser = new GenericTemplateParser();
@@ -97,6 +98,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
                     }
                     template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
+                    template.getEventDefinition().getProperties().put("app_id", config.getAppId());
                     isTemplateParsingSuccessful = true;
                 } catch (ParsingException ex) {
                     System.err.println("Parsing failed - " + ex.getMessage());

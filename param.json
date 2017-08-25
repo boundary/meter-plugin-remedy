@@ -6,11 +6,11 @@
       "userName":"xxx",
       "password":"xxx",
       "requestType":"incident tickets",
+      "appId":"Remedy",
       "fields":[
         "{",
         "\t\"eventDefinition\": {",
         "\t\t\"properties\": {",
-        "\t\t\t\"app_id\": \"Remedy DEMO\"",
         "\t\t},",
         "\t},",
         "}"

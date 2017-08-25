@@ -37,6 +37,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Port              |The port of Remedy server                                            		   |
 |Username          |The user of Remedy server                                            		   |
 |Password          |The password of Remedy server                                        		   |
+|App Id            |The App Id for events on TSI                                         		   |
 |Poll Interval     |How often (in minutes) to poll for collecting the tickets                    |
 |Ticket Type       |Type of tickets to be collected(Incidents or Change)                                      |
 |Field Mapping     |Type of fields will be collected(more info please check in template section)   |
