@@ -1,11 +1,11 @@
 {
-	"config": {
-  		"conditionFields":[1000000564,3,6],
-  		"queryStatusList":[0,5],
-  		"retryConfig":3,
-  		"waitMsBeforeRetry":5000
-	},
-	"eventDefinition": {
+    "config": {
+        "conditionFields": [3, 1000000564, 6],
+        "queryStatusList": [0, 1, 5],
+        "retryConfig": 2,
+        "waitMsBeforeRetry": 5000
+    },
+    "eventDefinition": {
         "title": "@SUMMARY",
         "fingerprintFields": ["IncidentNumber"],
         "severity": "@SEVERITY",
@@ -24,7 +24,7 @@
             "IncidentType": "@INCIDENT_TYPE",
             "AssignedGroup": "@ASSIGNED_GROUP",
             "Submitter": "@SUBMITTER",
-            "IncidentCreatedDate": "@CREATED_AT",
+            "IncidentCreatedDate":"@CREATED_AT",
             "LastModDate": "@LAST_MOD_DATE",
             "ClosedDate": "@CLOSED_DATE", 
             "app_id": "Remedy TSI Integration"
