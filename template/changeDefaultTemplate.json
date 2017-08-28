@@ -1,11 +1,11 @@
 {
-	"config": {
-  		"conditionFields":[303915500,3],
-  		"queryStatusList":[0,11],
-  		"retryConfig":3,
-  		"waitMsBeforeRetry":5000
-	},
-	"eventDefinition": {
+    "config": {
+        "conditionFields": [303915500, 3],
+        "queryStatusList": [0, 11],
+        "retryConfig": 2,
+        "waitMsBeforeRetry": 5000
+    },
+    "eventDefinition": {
         "title": "@TITLE",
         "fingerprintFields": ["ChangeID"],
         "severity": "@SEVERITY",
