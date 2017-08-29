@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.bmc.truesight.saas</groupId>
             <artifactId>remedy-tsi-integration-lib</artifactId>
-            <version>0.1.3</version>
+            <version>0.1.4</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -63,7 +63,7 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.2</version>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.core.version}</version>

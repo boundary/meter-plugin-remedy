@@ -84,7 +84,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
             for (RemedyPluginConfigurationItem config : items) {
                 boolean isTemplateParsingSuccessful = false;
                 boolean isTemplateValidationSuccessful = false;
-                
+
                 //PARSING THE JSON STRING
                 //System.err.println("parsing param.json data");
                 TemplateParser templateParser = new GenericTemplateParser();
@@ -119,7 +119,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 } else {
                     System.exit(1);
                 }
-				
+
                 if (isTemplateValidationSuccessful) {
                     if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
