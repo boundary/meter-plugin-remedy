@@ -63,11 +63,11 @@ public class RemedyTicketsCollector implements Collector {
     public void run() {
         EventSinkAPI eventSinkAPI = new EventSinkAPI();
         EventSinkStandardOutput eventSinkAPIstd = new EventSinkStandardOutput();
-        String name="";
-        if(arServerForm == ARServerForm.INCIDENT_FORM){
-        	name = "Incidents";
-        }else{
-        	name = "Changes";
+        String name = "";
+        if (arServerForm == ARServerForm.INCIDENT_FORM) {
+            name = "Incidents";
+        } else {
+            name = "Changes";
         }
         while (true) {
             RemedyReader reader = new GenericRemedyReader();
@@ -100,7 +100,7 @@ public class RemedyTicketsCollector implements Collector {
                     break;
                 }
                 if (isConnectionOpen) {
-                	Map<String,List<String>> errorsMap=new HashMap<>();
+                    Map<String, List<String>> errorsMap = new HashMap<>();
                     while (readNext) {
                         System.err.println("Iteration : " + iteration);
                         remedyResponse = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
@@ -109,11 +109,11 @@ public class RemedyTicketsCollector implements Collector {
                         totalRecordsRead += recordsCount;
                         validRecords += remedyResponse.getValidEventList().size();
                         if (recordsCount < chunkSize && totalRecordsRead < nMatches.intValue() && exceededMaxServerEntries) {
-                        	System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
-                        	System.err.println(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + recordsCount);
+                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            System.err.println(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + recordsCount);
                             chunkSize = recordsCount;
                         } else if (recordsCount <= chunkSize) {
-                        	System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
                         }
                         if (totalRecordsRead < nMatches.longValue() && (totalRecordsRead + chunkSize) > nMatches.longValue()) {
                             //assuming the long value would be in int range always
@@ -123,9 +123,9 @@ public class RemedyTicketsCollector implements Collector {
                         }
                         iteration++;
                         startFrom = totalRecordsRead;
-                        
-                        if(remedyResponse.getLargeInvalidEventCount()>0){
-                        	List<String> eventIds = new ArrayList<>();
+
+                        if (remedyResponse.getLargeInvalidEventCount() > 0) {
+                            List<String> eventIds = new ArrayList<>();
                             if (arServerForm == ARServerForm.INCIDENT_FORM) {
                                 for (TSIEvent event : remedyResponse.getInvalidEventList()) {
                                     eventIds.add(event.getProperties().get(Constants.PROPERTY_INCIDENTNO));
@@ -135,7 +135,7 @@ public class RemedyTicketsCollector implements Collector {
                                     eventIds.add(event.getProperties().get(Constants.PROPERTY_CHANGEID));
                                 }
                             }
-                            System.err.println("Following "+name+" ids are larger than allowed limits ["+String.join(",", eventIds)+"]");
+                            System.err.println("Following " + name + " ids are larger than allowed limits [" + String.join(",", eventIds) + "]");
 
                         }
                         List<TSIEvent> eventsList = remedyResponse.getValidEventList();
@@ -146,38 +146,38 @@ public class RemedyTicketsCollector implements Collector {
                             sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
                             String resultJson = eventSinkAPI.emit(sendEventToTSI.toString());
                             ObjectMapper mapper = new ObjectMapper();
-                            RpcResponse rpcResponse =mapper.readValue(resultJson, RpcResponse.class);
-                            if(rpcResponse.getResult() == null){
-                            	totalFailure += eventsList.size();
-                            	addEventIdsToErrorMap(eventsList, errorsMap,"Event ingestion failed with no response from meter");
-                            }else if(rpcResponse.getResult().getError() != null){
-                            	totalFailure += eventsList.size();
-                            	String msg = "Event ingestion failed with status code "+rpcResponse.getResult().getError().getCode()+","+rpcResponse.getResult().getError().getMessage();
-                            	addEventIdsToErrorMap(eventsList, errorsMap, msg);
-                            }else{
-                            	Result result= rpcResponse.getResult().getResult();
-                            	if (result.getAccepted() != null) {
+                            RpcResponse rpcResponse = mapper.readValue(resultJson, RpcResponse.class);
+                            if (rpcResponse.getResult() == null) {
+                                totalFailure += eventsList.size();
+                                addEventIdsToErrorMap(eventsList, errorsMap, "Event ingestion failed with no response from meter");
+                            } else if (rpcResponse.getResult().getError() != null) {
+                                totalFailure += eventsList.size();
+                                String msg = "Event ingestion failed with status code " + rpcResponse.getResult().getError().getCode() + "," + rpcResponse.getResult().getError().getMessage();
+                                addEventIdsToErrorMap(eventsList, errorsMap, msg);
+                            } else {
+                                Result result = rpcResponse.getResult().getResult();
+                                if (result.getAccepted() != null) {
                                     totalSuccessful += result.getAccepted().size();
                                 }
                                 if (result.getErrors() != null) {
                                     totalFailure += result.getErrors().size();
                                 }
                                 if (result.getSuccess() == Success.PARTIAL) {
-                                    for(Error error:result.getErrors()){
-                                    	String id = "";
+                                    for (Error error : result.getErrors()) {
+                                        String id = "";
                                         String msg = error.getMessage().trim();
-                                        if(arServerForm == ARServerForm.INCIDENT_FORM){
-                                    		id=eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_INCIDENTNO);
-                                        }else{
-                                        	id=eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_CHANGEID);
+                                        if (arServerForm == ARServerForm.INCIDENT_FORM) {
+                                            id = eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_INCIDENTNO);
+                                        } else {
+                                            id = eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_CHANGEID);
                                         }
                                         if (errorsMap.containsKey(msg)) {
-                                        	List<String> errorsId = errorsMap.get(msg);
-                                        	errorsId.add(id);
+                                            List<String> errorsId = errorsMap.get(msg);
+                                            errorsId.add(id);
                                             errorsMap.put(msg, errorsId);
                                         } else {
-                                        	List<String> errorsId = new ArrayList<String>();
-                                        	errorsId.add(id);
+                                            List<String> errorsId = new ArrayList<String>();
+                                            errorsId.add(id);
                                             errorsMap.put(msg, errorsId);
                                         }
                                     }
@@ -189,16 +189,16 @@ public class RemedyTicketsCollector implements Collector {
                         }
 
                     }//each chunk iteration
-                    
-                    System.err.println("____________"+name+" ingestion to truesight intelligence final status: Remedy Records = "+nMatches.longValue()+", Valid Records Sent = "+validRecords+", Successful = "+totalSuccessful+" , Failure = "+totalFailure+" ______");
+
+                    System.err.println("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + nMatches.longValue() + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
                     if (totalFailure > 0) {
-                    	System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
+                        System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {
-                        	  System.err.println("______ "+errorsMap.get(msg).size()+"    , "+msg+",  "+errorsMap.get(msg));
+                            System.err.println("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
                         });
 
                     }
-                  }
+                }
             } catch (RemedyLoginFailedException e) {
                 System.err.println("Remedy login failed :" + e.getMessage());
                 break;
@@ -229,24 +229,24 @@ public class RemedyTicketsCollector implements Collector {
         }//infinite while loop end
     }
 
-    private void addEventIdsToErrorMap(List<TSIEvent> eventsList, Map<String,List<String>> errorsMap,String msg){
-    	eventsList.forEach(event->{
-    		String id;
-        	if(arServerForm == ARServerForm.INCIDENT_FORM){
-        		id = event.getProperties().get(Constants.PROPERTY_INCIDENTNO);
-            }else{
-            	id = event.getProperties().get(Constants.PROPERTY_CHANGEID);
+    private void addEventIdsToErrorMap(List<TSIEvent> eventsList, Map<String, List<String>> errorsMap, String msg) {
+        eventsList.forEach(event -> {
+            String id;
+            if (arServerForm == ARServerForm.INCIDENT_FORM) {
+                id = event.getProperties().get(Constants.PROPERTY_INCIDENTNO);
+            } else {
+                id = event.getProperties().get(Constants.PROPERTY_CHANGEID);
             }
             if (errorsMap.containsKey(msg)) {
-            	List<String> errorsId = errorsMap.get(msg);
-            	errorsId.add(id);
+                List<String> errorsId = errorsMap.get(msg);
+                errorsId.add(id);
                 errorsMap.put(msg, errorsId);
             } else {
-            	List<String> errorsId = new ArrayList<String>();
-            	errorsId.add(id);
+                List<String> errorsId = new ArrayList<String>();
+                errorsId.add(id);
                 errorsMap.put(msg, errorsId);
             }
-    	});
-    	
+        });
+
     }
 }

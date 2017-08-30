@@ -24,16 +24,17 @@
             "IncidentType": "@INCIDENT_TYPE",
             "AssignedGroup": "@ASSIGNED_GROUP",
             "Submitter": "@SUBMITTER",
-            "IncidentCreatedDate":"@CREATED_AT",
+            "IncidentCreatedDate": "@CREATED_AT",
             "LastModDate": "@LAST_MOD_DATE",
             "ClosedDate": "@CLOSED_DATE", 
             "app_id": "Remedy TSI Integration"
         },
+        "createdAt": "@CREATED_AT", 
         "eventClass": "Incident",
         "source": {
-            "name": "Remedy",
-            "type": "Remedy",
-            "ref": "Remedy"
+            "name": "#remedyHostName",
+            "type": "host",
+            "ref": "#remedyHostName"
         },
         "sender": {
             "name": "Remedy",

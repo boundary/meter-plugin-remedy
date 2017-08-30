@@ -1,22 +1,22 @@
 {
-  "items":[
-    {
-      "hostName":"127.0.0.1",
-      "port":"",
-      "userName":"xxx",
-      "password":"xxx",
-      "requestType":"incident tickets",
-      "appId":"Remedy",
-      "fields":[
-        "{",
-        "\t\"eventDefinition\": {",
-        "\t\t\"properties\": {",
-        "\t\t},",
-        "\t},",
-        "}"
-      ],
-      "pollInterval":15
-    }
-  ],
-  "pollInterval":15
+    "items": [
+        {
+            "hostName": "127.0.0.1",
+            "port": "",
+            "userName": "xxx",
+            "password": "xxx",
+            "requestType": "incident tickets",
+            "appId": "Remedy",
+            "fields": [
+                "{",
+                "\t\"eventDefinition\": {",
+                "\t\t\"properties\": {",
+                "\t\t},",
+                "\t},",
+                "}"
+            ],
+            "pollInterval": 15
+        }
+    ],
+    "pollInterval": 15
 }

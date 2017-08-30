@@ -49,10 +49,10 @@ public class RemedyPluginConfigurationItem {
     }
 
     public void setPort(String port) {
-		this.port = port;
-	}
+        this.port = port;
+    }
 
-	public String getUserName() {
+    public String getUserName() {
         return userName;
     }
 
@@ -83,11 +83,11 @@ public class RemedyPluginConfigurationItem {
         this.pollInterval = pollInterval;
     }
 
-	public String getAppId() {
-		return appId;
-	}
+    public String getAppId() {
+        return appId;
+    }
 
-	public void setAppId(String appId) {
-		this.appId = appId;
-	}
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
 }

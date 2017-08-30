@@ -1,97 +1,99 @@
 {
-  "name": "BMC Remedy Plugin",
-  "version": "0.9.1",
-  "meterVersionRequired": "4.7.1-858",
-  "unsupportedPlatforms": [],
-  "tags": "remedy",
-  "description": "Ingests Incidents and Change tickets from BMC Remedy",
-  "command_lua": "",
-  "postExtract_lua": "",
-  "command": "java -jar target/meter-plugin-remedy-0.9.1.jar",
-  "postExtract": "",
-  "ignore": "",
-  "icon": "icon.png",
-  "metrics": [
-  ],
-  "dashboards": [
-  ],
-  "paramArray": {
-    "itemTitle": [
-      "hostName","requestType"
+    "name": "BMC Remedy Plugin",
+    "version": "0.9.1",
+    "meterVersionRequired": "4.7.1-858",
+    "unsupportedPlatforms": [],
+    "tags": "remedy",
+    "description": "Ingests Incidents and Change tickets from BMC Remedy",
+    "command_lua": "",
+    "postExtract_lua": "",
+    "command": "java -jar target/meter-plugin-remedy-0.9.1.jar",
+    "postExtract": "",
+    "ignore": "",
+    "icon": "icon.png",
+    "metrics": [
     ],
-    "schemaTitle": "Remedy Instance"
-  },
-  "paramSchema": [
-    {
-      "title": "AR Server Name",
-      "name": "hostName",
-      "description": "The host of BMC Remedy server",
-      "type": "string",
-      "default": "127.0.0.1",
-      "required": true
+    "dashboards": [
+    ],
+    "paramArray": {
+        "itemTitle": [
+            "hostName", "requestType"
+        ],
+        "schemaTitle": "Remedy Instance"
     },
-    {
-      "title": "Port",
-      "name": "port",
-      "description": "The API port of BMC Remedy server",
-      "type": "String",
-      "required": false
-    },
-    {
-      "title": "User Name",
-      "name": "userName",
-      "description": "The user of BMC Remedy server",
-      "type": "string",
-      "default": "",
-      "required": true
-    },
-    {
-      "title": "Password",
-      "name": "password",
-      "description": "The password of BMC Remedy server",
-      "default": "",
-      "type": "password",
-      "required": false
-    },
-    {
-      "title": "App Id",
-      "name": "appId",
-      "description": "App Id",
-      "default": "Remedy",
-      "type": "string",
-      "required": true
-    },
-    {
-      "title": "Ticket Type",
-      "name": "requestType",
-      "description": "Request Type",
-      "type": { "enum" : [["Incident", "incident tickets"], ["Change", "change tickets"]] },
-      "default": "incident tickets",
-      "required" : true
-    },
-	{
-      "title": "Field Mapping",
-      "name": "fields",
-      "description": "Remedy TSI Fields Mapping Configuration",
-      "type": "array",
-      "items": {
-	  "type": "string"
-      },
-      "default": [ "{",
-        "\t\"eventDefinition\": {",
-        "\t\t\"properties\": {",
-        "\t\t}",
-        "\t}",
-        "}"],
-      	"required": true
-    },
-    {
-      "title": "Poll Interval (min)",
-      "name": "pollInterval",
-      "description": "How often (in Min) to poll for events.",
-      "type": "integer",
-      "default": 15,
-      "required": true
-    }
-  ]
+    "paramSchema": [
+        {
+            "title": "AR Server Name",
+            "name": "hostName",
+            "description": "The host of BMC Remedy server",
+            "type": "string",
+            "default": "127.0.0.1",
+            "required": true
+        },
+        {
+            "title": "Port",
+            "name": "port",
+            "description": "The API port of BMC Remedy server",
+            "type": "String",
+            "required": false
+        },
+        {
+            "title": "User Name",
+            "name": "userName",
+            "description": "The user of BMC Remedy server",
+            "type": "string",
+            "default": "",
+            "required": true
+        },
+        {
+            "title": "Password",
+            "name": "password",
+            "description": "The password of BMC Remedy server",
+            "default": "",
+            "type": "password",
+            "required": false
+        },
+        {
+            "title": "App Id",
+            "name": "appId",
+            "description": "App Id",
+            "default": "Remedy",
+            "type": "string",
+            "required": true
+        },
+        {
+            "title": "Ticket Type",
+            "name": "requestType",
+            "description": "Request Type",
+            "type": {
+                "enum": [["Incident", "incident tickets"], ["Change", "change tickets"]]
+            },
+            "default": "incident tickets",
+            "required": true
+        },
+        {
+            "title": "Field Mapping",
+            "name": "fields",
+            "description": "Remedy TSI Fields Mapping Configuration",
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "default": ["{",
+                "\t\"eventDefinition\": {",
+                "\t\t\"properties\": {",
+                "\t\t}",
+                "\t}",
+                "}"],
+            "required": true
+        },
+        {
+            "title": "Poll Interval (min)",
+            "name": "pollInterval",
+            "description": "How often (in Min) to poll for events.",
+            "type": "integer",
+            "default": 15,
+            "required": true
+        }
+    ]
 }

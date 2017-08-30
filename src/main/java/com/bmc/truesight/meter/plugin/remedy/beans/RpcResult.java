@@ -6,22 +6,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RpcResult {
 
-	private Result result;
-	private Error error;
-	
-	public Result getResult() {
-		return result;
-	}
+    private Result result;
+    private Error error;
 
-	public void setResult(Result result) {
-		this.result = result;
-	}
+    public Result getResult() {
+        return result;
+    }
 
-	public Error getError() {
-		return error;
-	}
+    public void setResult(Result result) {
+        this.result = result;
+    }
 
-	public void setError(Error error) {
-		this.error = error;
-	}
+    public Error getError() {
+        return error;
+    }
+
+    public void setError(Error error) {
+        this.error = error;
+    }
 }
