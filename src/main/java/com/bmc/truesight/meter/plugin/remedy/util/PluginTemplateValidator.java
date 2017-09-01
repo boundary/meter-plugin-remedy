@@ -58,15 +58,7 @@ public class PluginTemplateValidator implements TemplateValidator {
         if (properties.keySet().size() > Constants.MAX_PROPERTY_FIELD_SUPPORTED) {
             throw new ValidationException(StringUtil.format(Constants.PROPERTY_FIELD_COUNT_EXCEEDS, new Object[]{properties.keySet().size(), Constants.MAX_PROPERTY_FIELD_SUPPORTED}));
         }
-        if (properties.containsKey("app_id")) {
-            String appId = properties.get("app_id");
-            if (!isValidAppId(appId)) {
-                throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_INVALID, new Object[]{appId}));
-            }
-            if (appId.trim().length() > Constants.APPLICATION_LENGTH) {
-                throw new ValidationException(StringUtil.format(Constants.APPLICATION_LENGTH_INVALID, new Object[]{Constants.APPLICATION_LENGTH}));
-            }
-        } else {
+        if (!properties.containsKey("app_id")) {
             throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_NOT_FOUND, new Object[0]));
         }
 
