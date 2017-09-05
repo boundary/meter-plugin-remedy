@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,8 @@ public class RemedyTicketsCollector implements Collector {
         } else {
             name = "Changes";
         }
+        Long pollInterval = config.getPollInterval() * 60 * 1000;
+        Long lastPoll = null;
         while (true) {
             RemedyReader reader = new GenericRemedyReader();
             ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
@@ -87,7 +90,13 @@ public class RemedyTicketsCollector implements Collector {
                 int totalSuccessful = 0;
                 int validRecords = 0;
                 Long currentMili = Calendar.getInstance().getTimeInMillis();
-                Long pastMili = currentMili - (config.getPollInterval() * 60 * 1000);
+                Long pastMili = null;
+                if (lastPoll == null) {
+                    pastMili = currentMili - pollInterval;
+                } else {
+                    pastMili = lastPoll;
+                }
+                lastPoll = currentMili;
                 template.getConfig().setStartDateTime(new Date(pastMili));
                 template.getConfig().setEndDateTime(new Date(currentMili));
                 boolean exceededMaxServerEntries = false;
@@ -196,7 +205,6 @@ public class RemedyTicketsCollector implements Collector {
                         errorsMap.keySet().forEach(msg -> {
                             System.err.println("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
                         });
-
                     }
                 }
             } catch (RemedyLoginFailedException e) {
@@ -220,11 +228,21 @@ public class RemedyTicketsCollector implements Collector {
                     }
                 }
             }
-            try {
-                Thread.sleep((config.getPollInterval() * 60 * 1000));
-            } catch (InterruptedException ex) {
-                System.err.println("Interrupted Exception :" + ex.getMessage());
-                eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
+            Long now = Calendar.getInstance().getTimeInMillis();
+            Long elapsedTime = now - lastPoll;
+            Long timeToSleep = null;
+            if (elapsedTime > pollInterval) {
+            	timeToSleep = 0l;
+            } else {
+            	timeToSleep = pollInterval - elapsedTime;
+            }
+
+            if (timeToSleep > 0) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(timeToSleep);
+                } catch (InterruptedException e) {
+                    System.err.println("Interrupted Exception :" + e.getMessage());
+                }
             }
         }//infinite while loop end
     }
