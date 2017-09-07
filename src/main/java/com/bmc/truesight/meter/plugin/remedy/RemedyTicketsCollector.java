@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bmc.arsys.api.ARServerUser;
+import com.bmc.arsys.api.Field;
 import com.bmc.arsys.api.OutputInteger;
 import com.bmc.truesight.meter.plugin.remedy.beans.RpcResponse;
 import com.bmc.truesight.meter.plugin.remedy.util.Constants;
@@ -45,14 +46,17 @@ public class RemedyTicketsCollector implements Collector {
     private static final Logger LOG = LoggerFactory.getLogger(RemedyPlugin.class);
     private final RemedyPluginConfigurationItem config;
     private final Template template;
+    private final Map<Integer, Field> fieldMap;
     private final ARServerForm arServerForm;
-    private RemedyEntryEventAdapter remedyEntryEventAdapter = new RemedyEntryEventAdapter();
+    private RemedyEntryEventAdapter remedyEntryEventAdapter;
 
-    public RemedyTicketsCollector(RemedyPluginConfigurationItem config, Template template, ARServerForm arServerForm) {
+    public RemedyTicketsCollector(RemedyPluginConfigurationItem config, Template template, Map<Integer, Field> fieldMap, ARServerForm arServerForm) {
         this.config = config;
         this.template = template;
+        this.fieldMap = fieldMap;
         Util.updateConfiguration(this.template, config);
         this.arServerForm = arServerForm;
+        remedyEntryEventAdapter = new RemedyEntryEventAdapter(fieldMap);
     }
 
     @Override
@@ -100,6 +104,7 @@ public class RemedyTicketsCollector implements Collector {
                 template.getConfig().setStartDateTime(new Date(pastMili));
                 template.getConfig().setEndDateTime(new Date(currentMili));
                 boolean exceededMaxServerEntries = false;
+                List<String> droppedEventIds = new ArrayList<>();
                 System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                 isConnectionOpen = eventSinkAPI.openConnection();
                 if (isConnectionOpen) {
@@ -113,6 +118,7 @@ public class RemedyTicketsCollector implements Collector {
                     while (readNext) {
                         System.err.println("Iteration : " + iteration);
                         remedyResponse = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
+                        fixCreatedAtTimestamp(remedyResponse, template.getConfig().getStartDateTime());
                         exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
                         int recordsCount = remedyResponse.getValidEventList().size() + remedyResponse.getLargeInvalidEventCount();
                         totalRecordsRead += recordsCount;
@@ -144,6 +150,7 @@ public class RemedyTicketsCollector implements Collector {
                                     eventIds.add(event.getProperties().get(Constants.PROPERTY_CHANGEID));
                                 }
                             }
+                            droppedEventIds.addAll(eventIds);
                             System.err.println("Following " + name + " ids are larger than allowed limits [" + String.join(",", eventIds) + "]");
 
                         }
@@ -200,6 +207,9 @@ public class RemedyTicketsCollector implements Collector {
                     }//each chunk iteration
 
                     System.err.println("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + nMatches.longValue() + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
+                    if (droppedEventIds.size() > 0) {
+                        System.err.println("______Following " + droppedEventIds.size() + " events were invalid & dropped. " + droppedEventIds);
+                    }
                     if (totalFailure > 0) {
                         System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {
@@ -232,9 +242,9 @@ public class RemedyTicketsCollector implements Collector {
             Long elapsedTime = now - lastPoll;
             Long timeToSleep = null;
             if (elapsedTime > pollInterval) {
-            	timeToSleep = 0l;
+                timeToSleep = 0l;
             } else {
-            	timeToSleep = pollInterval - elapsedTime;
+                timeToSleep = pollInterval - elapsedTime;
             }
 
             if (timeToSleep > 0) {
@@ -245,6 +255,26 @@ public class RemedyTicketsCollector implements Collector {
                 }
             }
         }//infinite while loop end
+    }
+
+    private void fixCreatedAtTimestamp(RemedyEventResponse remedyResponse, Date startDateTime) {
+        if (remedyResponse.getValidEventList().size() > 0) {
+            remedyResponse.getValidEventList().forEach(event -> {
+                String lastModDateString = event.getProperties().get(com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD);
+                String createdDateString = event.getCreatedAt();
+                try {
+                    long lastModDate = Long.parseLong(lastModDateString);
+                    long createdDate = Long.parseLong(createdDateString);
+                    if (createdDate < startDateTime.getTime()) {
+                        event.setCreatedAt(Long.toString(lastModDate));
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Cannot parse the last modified date, setting createdAt as modified date failed. Please review the mapping for last modified date.");
+                }
+
+            });
+        }
+
     }
 
     private void addEventIdsToErrorMap(List<TSIEvent> eventsList, Map<String, List<String>> errorsMap, String msg) {

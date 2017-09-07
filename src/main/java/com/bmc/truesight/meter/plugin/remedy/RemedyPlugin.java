@@ -3,21 +3,28 @@ package com.bmc.truesight.meter.plugin.remedy;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bmc.arsys.api.ARServerUser;
+import com.bmc.arsys.api.Field;
 import com.bmc.truesight.meter.plugin.remedy.util.Constants;
 import com.bmc.truesight.meter.plugin.remedy.util.PluginTemplateValidator;
 import com.bmc.truesight.meter.plugin.remedy.util.RequestType;
 import com.bmc.truesight.meter.plugin.remedy.util.Util;
 import com.bmc.truesight.saas.remedy.integration.ARServerForm;
+import com.bmc.truesight.saas.remedy.integration.RemedyReader;
 import com.bmc.truesight.saas.remedy.integration.TemplateParser;
 import com.bmc.truesight.saas.remedy.integration.TemplatePreParser;
 import com.bmc.truesight.saas.remedy.integration.TemplateValidator;
+import com.bmc.truesight.saas.remedy.integration.beans.Configuration;
 import com.bmc.truesight.saas.remedy.integration.beans.Template;
 import com.bmc.truesight.saas.remedy.integration.exception.ParsingException;
+import com.bmc.truesight.saas.remedy.integration.exception.RemedyReadFailedException;
 import com.bmc.truesight.saas.remedy.integration.exception.ValidationException;
+import com.bmc.truesight.saas.remedy.integration.impl.GenericRemedyReader;
 import com.bmc.truesight.saas.remedy.integration.impl.GenericTemplateParser;
 import com.bmc.truesight.saas.remedy.integration.impl.GenericTemplatePreParser;
 import com.boundary.plugin.sdk.CollectorDispatcher;
@@ -84,18 +91,21 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
             for (RemedyPluginConfigurationItem config : items) {
                 boolean isTemplateParsingSuccessful = false;
                 boolean isTemplateValidationSuccessful = false;
-
+                ARServerForm form = null;
                 //PARSING THE JSON STRING
                 //System.err.println("parsing param.json data");
                 TemplateParser templateParser = new GenericTemplateParser();
                 TemplatePreParser templatePreParser = new GenericTemplatePreParser();
                 Template template = null;
+                Map<Integer, Field> fieldmap = null;
                 try {
                     Template defaultTemplate = new Template();
                     if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.INCIDENT_FORM);
+                        form = ARServerForm.INCIDENT_FORM;
                     } else if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
+                        form = ARServerForm.CHANGE_FORM;
                     }
                     template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
                     template.getEventDefinition().getProperties().put("app_id", config.getAppId());
@@ -107,12 +117,27 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 }
 
                 if (isTemplateParsingSuccessful) {
-                    TemplateValidator templateValidator = new PluginTemplateValidator();
+                    Configuration configuration = template.getConfig();
+                    RemedyReader reader = new GenericRemedyReader();
                     try {
-                        templateValidator.validate(template);
+                        int port = 0;
+                        if (config.getPort() != null && config.getPort() != "") {
+                            try {
+                                port = Integer.parseInt(config.getPort());
+                            } catch (Exception ex) {
+                                LOG.warn("port number invalid, default port number 0 is used ");
+                            }
+                        }
+                        ARServerUser user = reader.createARServerContext(config.getHostName(), port, config.getUserName(), config.getPassword());
+                        fieldmap = reader.getFieldsMap(user, form);
+                        // VALIDATION OF THE CONFIGURATION
+                        TemplateValidator validator = new PluginTemplateValidator(fieldmap);
+                        validator.validate(template);
                         isTemplateValidationSuccessful = true;
                     } catch (ValidationException ex) {
                         System.err.println("Validation failed - " + ex.getMessage());
+                    } catch (RemedyReadFailedException e) {
+                        System.err.println("Validation failed - " + e.getMessage());
                     } catch (Exception ex) {
                         System.err.println("Validation failed - " + ex.getMessage());
                     }
@@ -122,9 +147,9 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
 
                 if (isTemplateValidationSuccessful) {
                     if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
-                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.CHANGE_FORM));
+                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, fieldmap, ARServerForm.CHANGE_FORM));
                     } else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
-                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, ARServerForm.INCIDENT_FORM));
+                        dispatcher.addCollector(new RemedyTicketsCollector(config, template, fieldmap, ARServerForm.INCIDENT_FORM));
                     }
                 } else {
                     System.exit(1);
