@@ -1,10 +1,14 @@
 package com.bmc.truesight.meter.plugin.remedy.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bmc.arsys.api.Field;
 import com.bmc.truesight.saas.remedy.integration.TemplateValidator;
 import com.bmc.truesight.saas.remedy.integration.beans.Configuration;
 import com.bmc.truesight.saas.remedy.integration.beans.EventSource;
@@ -23,12 +27,35 @@ public class PluginTemplateValidator implements TemplateValidator {
 
     private static final Logger log = LoggerFactory.getLogger(PluginTemplateValidator.class);
 
+    private Map<Integer, Field> fieldmap;
+
+    public PluginTemplateValidator(Map<Integer, Field> fieldmap) {
+        this.fieldmap = fieldmap;
+    }
+
     @Override
     public boolean validate(Template template) throws ValidationException {
         Configuration config = template.getConfig();
         TSIEvent payload = template.getEventDefinition();
-        Map<String, FieldItem> fieldItemMap = template.getFieldItemMap();
+        Map<String, FieldItem> baseFieldItemMap = template.getFieldItemMap();
 
+        List<String> invalidDefinitionList = new ArrayList<>();
+        Map<Integer, Field> usableFieldMap = new HashMap<>();
+        Map<String, FieldItem> fieldItemMap = new HashMap<>();
+        baseFieldItemMap.keySet().forEach(key -> {
+            Field field = fieldmap.get(baseFieldItemMap.get(key).getFieldId());
+            if (field == null) {
+                invalidDefinitionList.add(key);
+            } else {
+                fieldItemMap.put(key, baseFieldItemMap.get(key));
+                usableFieldMap.put(field.getFieldID(), field);
+            }
+        });
+        fieldmap.clear();
+        fieldmap.putAll(usableFieldMap);
+        if (invalidDefinitionList.size() > 0) {
+            System.err.println("The following field definitions are dropped because they have invalid fieldId. " + invalidDefinitionList.toString());
+        }
         if (config.getConditionFields().size() == 0) {
             throw new ValidationException(StringUtil.format(Constants.CONFIG_VALIDATION_FAILED, new Object[]{}));
         }
@@ -62,6 +89,9 @@ public class PluginTemplateValidator implements TemplateValidator {
             throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_NOT_FOUND, new Object[0]));
         }
 
+        if (!properties.containsKey(com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD)) {
+            throw new ValidationException("Property " + com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD + " is mandatory to be in eventDefinition property mapping, please add this property in the template");
+        }
         for (String key : properties.keySet()) {
             if (!StringUtil.isValidJavaIdentifier(key)) {
                 throw new ValidationException(StringUtil.format(Constants.PROPERTY_NAME_INVALID, new Object[]{key.trim()}));
@@ -154,17 +184,8 @@ public class PluginTemplateValidator implements TemplateValidator {
         if (sender.getRef() != null && sender.getRef().startsWith("#")) {
             validateConfigField(config, sender.getRef().substring(1));
         }
-
         return true;
-    }
 
-    private boolean isValidAppId(String inputString) {
-        for (char c : inputString.toCharArray()) {
-            if (Constants.SPECIAL_CHARACTOR.indexOf(c, 0) >= 0) {
-                return false;
-            }
-        };
-        return true;
     }
 
     private void validateConfigField(Configuration config, String fieldName) throws ValidationException {

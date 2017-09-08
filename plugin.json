@@ -1,7 +1,7 @@
 {
     "name": "BMC Remedy Plugin",
     "version": "0.9.1",
-    "meterVersionRequired": "4.7.1-858",
+    "meterVersionRequired": "4.7.0-852",
     "unsupportedPlatforms": [],
     "tags": "remedy",
     "description": "Ingests Incidents and Change tickets from BMC Remedy",
