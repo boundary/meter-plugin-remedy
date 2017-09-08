@@ -118,7 +118,7 @@ public class RemedyTicketsCollector implements Collector {
                     while (readNext) {
                         System.err.println("Iteration : " + iteration);
                         remedyResponse = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
-                        fixCreatedAtTimestamp(remedyResponse, template.getConfig().getStartDateTime());
+                        fixCreatedAtTimestamp(remedyResponse, pastMili);
                         exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
                         int recordsCount = remedyResponse.getValidEventList().size() + remedyResponse.getLargeInvalidEventCount();
                         totalRecordsRead += recordsCount;
@@ -257,7 +257,7 @@ public class RemedyTicketsCollector implements Collector {
         }//infinite while loop end
     }
 
-    private void fixCreatedAtTimestamp(RemedyEventResponse remedyResponse, Date startDateTime) {
+    private void fixCreatedAtTimestamp(RemedyEventResponse remedyResponse, Long pastMili) {
         if (remedyResponse.getValidEventList().size() > 0) {
             remedyResponse.getValidEventList().forEach(event -> {
                 String lastModDateString = event.getProperties().get(com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD);
@@ -265,7 +265,7 @@ public class RemedyTicketsCollector implements Collector {
                 try {
                     long lastModDate = Long.parseLong(lastModDateString);
                     long createdDate = Long.parseLong(createdDateString);
-                    if (createdDate < startDateTime.getTime()) {
+                    if (createdDate < pastMili) {
                         event.setCreatedAt(Long.toString(lastModDate));
                     }
                 } catch (Exception ex) {
