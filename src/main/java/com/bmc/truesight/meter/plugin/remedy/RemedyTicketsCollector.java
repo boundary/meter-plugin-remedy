@@ -136,6 +136,11 @@ public class RemedyTicketsCollector implements Collector {
                         } else if (totalRecordsRead >= nMatches.longValue()) {
                             readNext = false;
                         }
+                        
+                        if (recordsCount == 0){
+                        	break;
+                        }
+                        
                         iteration++;
                         startFrom = totalRecordsRead;
 
