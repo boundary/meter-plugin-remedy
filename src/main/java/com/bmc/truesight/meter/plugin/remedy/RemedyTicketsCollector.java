@@ -224,14 +224,11 @@ public class RemedyTicketsCollector implements Collector {
                 }
             } catch (RemedyLoginFailedException e) {
                 System.err.println("Remedy login failed :" + e.getMessage());
-                break;
             } catch (RemedyReadFailedException e) {
                 System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
-                break;
             } catch (Exception e) {
                 System.err.println("Exception occured while fetching the data" + e.getMessage());
                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
-                break;
             } finally {
                 reader.logout(arServerContext);
                 if (isConnectionOpen) {
