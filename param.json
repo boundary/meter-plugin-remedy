@@ -11,8 +11,8 @@
                 "{",
                 "\t\"eventDefinition\": {",
                 "\t\t\"properties\": {",
-                "\t\t},",
-                "\t},",
+                "\t\t}",
+                "\t}",
                 "}"
             ],
             "pollInterval": 15
