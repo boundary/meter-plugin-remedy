@@ -1,6 +1,6 @@
 {
     "config": {
-        "conditionFields": [303915500, 3],
+        "conditionFields": [303915500, 3, 6],
         "queryStatusList": [0, 11],
         "retryConfig": 2,
         "waitMsBeforeRetry": 5000
@@ -21,6 +21,7 @@
             "RiskLevel": "@RISK_LEVEL",
             "ManagerGroup": "@MANAGER_GROUP",
             "Submitter": "@SUBMITTER",
+            "LastModDate": "@LAST_MOD_DATE",
             "ChangeCreatedDate": "@CREATED_AT",
             "CompletedDate": "@COMPLETED_DATE",
             "Summary": "@SUMMARY",
@@ -89,7 +90,7 @@
         "fieldId": 1000000151
     },
     "@ASSIGNEE": {
-        "fieldId": 303124400
+        "fieldId": 4
     },
     "@CI": {
         "fieldId": 301556800
@@ -99,6 +100,9 @@
     },
     "@SUBMITTER": {
         "fieldId": 2
+    },
+    "@LAST_MOD_DATE": {
+        "fieldId": 6
     },
     "@COMPLETED_DATE": {
         "fieldId": 1000002195

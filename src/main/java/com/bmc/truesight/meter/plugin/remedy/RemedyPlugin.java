@@ -19,7 +19,6 @@ import com.bmc.truesight.saas.remedy.integration.RemedyReader;
 import com.bmc.truesight.saas.remedy.integration.TemplateParser;
 import com.bmc.truesight.saas.remedy.integration.TemplatePreParser;
 import com.bmc.truesight.saas.remedy.integration.TemplateValidator;
-import com.bmc.truesight.saas.remedy.integration.beans.Configuration;
 import com.bmc.truesight.saas.remedy.integration.beans.Template;
 import com.bmc.truesight.saas.remedy.integration.exception.ParsingException;
 import com.bmc.truesight.saas.remedy.integration.exception.RemedyReadFailedException;
@@ -117,7 +116,6 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 }
 
                 if (isTemplateParsingSuccessful) {
-                    Configuration configuration = template.getConfig();
                     RemedyReader reader = new GenericRemedyReader();
                     try {
                         int port = 0;

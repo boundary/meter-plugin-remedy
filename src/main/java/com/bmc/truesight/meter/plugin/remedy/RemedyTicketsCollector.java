@@ -111,7 +111,6 @@ public class RemedyTicketsCollector implements Collector {
                     System.err.println("JSON RPC Socket connection successful");
                 } else {
                     System.err.println("JSON RPC Socket connection failed");
-                    break;
                 }
                 if (isConnectionOpen) {
                     Map<String, List<String>> errorsMap = new HashMap<>();
@@ -136,11 +135,11 @@ public class RemedyTicketsCollector implements Collector {
                         } else if (totalRecordsRead >= nMatches.longValue()) {
                             readNext = false;
                         }
-                        
-                        if (recordsCount == 0){
-                        	break;
+
+                        if (recordsCount == 0) {
+                            break;
                         }
-                        
+
                         iteration++;
                         startFrom = totalRecordsRead;
 
