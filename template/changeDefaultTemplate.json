@@ -1,6 +1,6 @@
 {
     "config": {
-        "conditionFields": [303915500, 3, 6],
+        "conditionFields": [3, 6],
         "queryStatusList": [0, 11],
         "retryConfig": 2,
         "waitMsBeforeRetry": 5000
