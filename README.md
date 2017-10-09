@@ -42,6 +42,14 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Ticket Type       |Type of tickets to be collected(Incidents or Change)                                      |
 |Field Mapping     |Type of fields will be collected(more info please check in template section)   |
 
+### Metrics Collected
+
+|Metrics Name                             |Description                                             |
+|:----------------------------------------|:-------------------------------------------------------|
+|Remedy Plugin Heartbeat                  | Heartbeat metric(with value 1) for Remedy Plugin       |
+|Remedy Successful Events ingestion count | Total events successfully ingested to TSI     		   |
+|Remedy Events ingestion failure count    | Failed event ingestion count to TSI     	           |
+|Remedy Events ingestion exception        | Plugin exception (values as 0/1, 0 as no exception)    |
 
 
 ### Templates

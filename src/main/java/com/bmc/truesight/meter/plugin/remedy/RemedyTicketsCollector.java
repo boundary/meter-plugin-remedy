@@ -34,6 +34,7 @@ import com.boundary.plugin.sdk.Event;
 import com.boundary.plugin.sdk.EventSinkAPI;
 import com.boundary.plugin.sdk.EventSinkStandardOutput;
 import com.boundary.plugin.sdk.Measurement;
+import com.boundary.plugin.sdk.MeasurementSinkAPI;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
@@ -66,7 +67,9 @@ public class RemedyTicketsCollector implements Collector {
 
     @Override
     public void run() {
+    	LOG.debug("########### {} Instance started ##############",config.getRequestType());
         EventSinkAPI eventSinkAPI = new EventSinkAPI();
+        MeasurementSinkAPI measurementSinkApi = new MeasurementSinkAPI();
         EventSinkStandardOutput eventSinkAPIstd = new EventSinkStandardOutput();
         String name = "";
         if (arServerForm == ARServerForm.INCIDENT_FORM) {
@@ -74,17 +77,24 @@ public class RemedyTicketsCollector implements Collector {
         } else {
             name = "Changes";
         }
+        String source = template.getConfig().getRemedyHostName() +"_"+ name;
         Long pollInterval = config.getPollInterval() * 60 * 1000;
         Long lastPoll = null;
         while (true) {
+        	LOG.debug("________ {} Instance Polling started ......",name);
+        	//sending heart beat
+        	measurementSinkApi.send(new Measurement("REMEDY.HEARTBEAT", 1, source));
             RemedyReader reader = new GenericRemedyReader();
             ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
             boolean isConnectionOpen = false;
             RemedyEventResponse remedyResponse = null;
             try {
+            	LOG.debug("________ {} Started login to AR Server",name);
                 reader.login(arServerContext);
+                LOG.debug("________ {} login to AR Server completed",name);
                 //Not Using template.getConfig().getChunkSize(); as for meter chunk size needed different
                 int chunkSize = Constants.CHUNK_SIZE;
+                LOG.debug("________ {} chunkSize set as {}",name,chunkSize);
                 int startFrom = 0;
                 int iteration = 1;
                 int totalRecordsRead = 0;
@@ -96,8 +106,10 @@ public class RemedyTicketsCollector implements Collector {
                 Long currentMili = Calendar.getInstance().getTimeInMillis();
                 Long pastMili = null;
                 if (lastPoll == null) {
+                	LOG.debug("________ {} _ This is the first poll",name);
                     pastMili = currentMili - pollInterval;
                 } else {
+                	LOG.debug("________ {} _ last poll time was {}",lastPoll);
                     pastMili = lastPoll;
                 }
                 lastPoll = currentMili;
@@ -220,13 +232,20 @@ public class RemedyTicketsCollector implements Collector {
                             System.err.println("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
                         });
                     }
+                  //sending success failure measurements
+                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.SUCCESS.COUNT", totalSuccessful, source));
+                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.FAILURE.COUNT", totalFailure, source));
+                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 0, source));
                 }
             } catch (RemedyLoginFailedException e) {
                 System.err.println("Remedy login failed :" + e.getMessage());
+                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
             } catch (RemedyReadFailedException e) {
                 System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
+                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
             } catch (Exception e) {
                 System.err.println("Exception occured while fetching the data" + e.getMessage());
+                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
             } finally {
                 reader.logout(arServerContext);

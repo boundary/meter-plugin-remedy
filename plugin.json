@@ -7,13 +7,21 @@
     "description": "Ingests Incidents and Change tickets from BMC Remedy",
     "command_lua": "",
     "postExtract_lua": "",
-    "command": "java -jar target/meter-plugin-remedy-0.9.1.jar",
+    "command": "java -jar target/meter-plugin-remedy-0.9.2.jar",
     "postExtract": "",
     "ignore": "",
     "icon": "icon.png",
     "metrics": [
+	    "REMEDY.HEARTBEAT",
+	    "REMEDY.INGESTION.SUCCESS.COUNT",
+	    "REMEDY.INGESTION.FAILURE.COUNT",
+	    "REMEDY.INGESTION.EXCEPTION"
     ],
     "dashboards": [
+	    {
+	      "name": "Remedy Event Ingestion",
+	      "layout": "d-w=2&d-h=2&d-pad=5&d-light=1&d-bg=none&d-g-REMEDY.INGESTION.SUCCESS.COUNT=0-1-1-1&d-g-REMEDY.INGESTION.FAILURE.COUNT=1-1-1-1&d-g-REMEDY.INGESTION.EXCEPTION=1-0-1-1&d-g-REMEDY.HEARTBEAT=0-0-1-1"
+	    }
     ],
     "paramArray": {
         "itemTitle": [
