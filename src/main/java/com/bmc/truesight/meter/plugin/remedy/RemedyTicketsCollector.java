@@ -16,6 +16,7 @@ import com.bmc.arsys.api.Field;
 import com.bmc.arsys.api.OutputInteger;
 import com.bmc.truesight.meter.plugin.remedy.beans.RpcResponse;
 import com.bmc.truesight.meter.plugin.remedy.util.Constants;
+import com.bmc.truesight.meter.plugin.remedy.util.Metrics;
 import com.bmc.truesight.meter.plugin.remedy.util.Util;
 import com.bmc.truesight.saas.remedy.integration.ARServerForm;
 import com.bmc.truesight.saas.remedy.integration.RemedyReader;
@@ -83,7 +84,7 @@ public class RemedyTicketsCollector implements Collector {
         while (true) {
         	LOG.debug("________ {} Instance Polling started ......",name);
         	//sending heart beat
-        	measurementSinkApi.send(new Measurement("REMEDY.HEARTBEAT", 1, source));
+        	measurementSinkApi.send(new Measurement(Metrics.REMEDY_HEARTBEAT.getMetricName(), Constants.MEASURE_YES, source));
             RemedyReader reader = new GenericRemedyReader();
             ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
             boolean isConnectionOpen = false;
@@ -233,19 +234,19 @@ public class RemedyTicketsCollector implements Collector {
                         });
                     }
                   //sending success failure measurements
-                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.SUCCESS.COUNT", totalSuccessful, source));
-                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.FAILURE.COUNT", totalFailure, source));
-                    measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 0, source));
+                    measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_SUCCESS_COUNT.getMetricName(), totalSuccessful, source));
+                    measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_FAILURE_COUNT.getMetricName(), totalFailure, source));
+                    measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_NO, source));
                 }
             } catch (RemedyLoginFailedException e) {
                 System.err.println("Remedy login failed :" + e.getMessage());
-                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
+                measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
             } catch (RemedyReadFailedException e) {
                 System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
-                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
+                measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
             } catch (Exception e) {
                 System.err.println("Exception occured while fetching the data" + e.getMessage());
-                measurementSinkApi.send(new Measurement("REMEDY.INGESTION.EXCEPTION", 1, source));
+                measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
             } finally {
                 reader.logout(arServerContext);
