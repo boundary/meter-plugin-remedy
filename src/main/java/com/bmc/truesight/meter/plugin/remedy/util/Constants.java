@@ -16,5 +16,7 @@ public class Constants {
     public static final String PROPERTY_INCIDENTNO = "IncidentNumber";
     public static final String PROPERTY_CHANGEID = "ChangeID";
     public static final String LASTMOD_DATE_PROPERTY_FIELD = "LastModDate";
+    public static final int MEASURE_YES = 1;
+    public static final int MEASURE_NO = 0;
 
 }

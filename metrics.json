@@ -1,5 +1,5 @@
 {
-"REMEDY.HEARTBEAT": {
+"REMEDY_HEARTBEAT": {
     "displayName": "Remedy Plugin Heartbeat",
     "displayNameShort": "Remedy Heartbeat",
     "description": "Displays remedy plugin heartbeat ",
@@ -8,28 +8,28 @@
     "unit": "number",
     "isDisabled": false
   },
-  "REMEDY.INGESTION.SUCCESS.COUNT": {
-    "displayName": "Remedy Successful Events ingestion count",
+  "REMEDY_INGESTION_SUCCESS_COUNT": {
+    "displayName": "Remedy Successful Events Ingestion Count",
     "displayNameShort": "Remedy Success cnt",
-    "description": "Remedy Successful Events ingestion count",
+    "description": "Remedy successful events ingestion count",
     "defaultResolutionMS": 900000,
     "defaultAggregate": "sum",
     "unit": "number",
     "isDisabled": false
   },
-  "REMEDY.INGESTION.FAILURE.COUNT": {
-    "displayName": "Remedy Events ingestion failure count",
+  "REMEDY_INGESTION_FAILURE_COUNT": {
+    "displayName": "Remedy Events Ingestion Failure Count",
     "displayNameShort": "Remedy fail cnt",
-    "description": "Remedy Events ingestion failure count",
+    "description": "Remedy events ingestion failure count",
     "defaultResolutionMS": 900000,
     "defaultAggregate": "sum",
     "unit": "number",
     "isDisabled": false
   },
-  "REMEDY.INGESTION.EXCEPTION": {
-    "displayName": "Remedy Events ingestion exception",
+  "REMEDY_INGESTION_EXCEPTION": {
+    "displayName": "Remedy Events Ingestion Exception",
     "displayNameShort": "Remedy Ingstn Exptn",
-    "description": "Remedy Events ingestion exception",
+    "description": "Remedy events ingestion exception",
     "defaultResolutionMS": 900000,
     "defaultAggregate": "avg",
     "unit": "number",
