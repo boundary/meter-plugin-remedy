@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bmc.truesight</groupId>
     <artifactId>meter-plugin-remedy</artifactId>
-    <version>0.9.3</version>
+    <version>0.9.4</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.bmc.truesight.saas</groupId>
             <artifactId>remedy-tsi-integration-lib</artifactId>
-            <version>0.1.6</version>
+            <version>0.1.7</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

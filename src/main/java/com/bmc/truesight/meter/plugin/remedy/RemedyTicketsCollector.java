@@ -22,6 +22,7 @@ import com.bmc.truesight.saas.remedy.integration.ARServerForm;
 import com.bmc.truesight.saas.remedy.integration.RemedyReader;
 import com.bmc.truesight.saas.remedy.integration.adapter.RemedyEntryEventAdapter;
 import com.bmc.truesight.saas.remedy.integration.beans.Error;
+import com.bmc.truesight.saas.remedy.integration.beans.InvalidEvent;
 import com.bmc.truesight.saas.remedy.integration.beans.RemedyEventResponse;
 import com.bmc.truesight.saas.remedy.integration.beans.Result;
 import com.bmc.truesight.saas.remedy.integration.beans.Success;
@@ -117,7 +118,7 @@ public class RemedyTicketsCollector implements Collector {
                 template.getConfig().setStartDateTime(new Date(pastMili));
                 template.getConfig().setEndDateTime(new Date(currentMili));
                 boolean exceededMaxServerEntries = false;
-                List<String> droppedEventIds = new ArrayList<>();
+                List<InvalidEvent> droppedEvents = new ArrayList<>();
                 System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                 isConnectionOpen = eventSinkAPI.openConnection();
                 if (isConnectionOpen) {
@@ -132,15 +133,15 @@ public class RemedyTicketsCollector implements Collector {
                         remedyResponse = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
                         fixCreatedAtTimestamp(remedyResponse, pastMili);
                         exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
-                        int recordsCount = remedyResponse.getValidEventList().size() + remedyResponse.getLargeInvalidEventCount();
+                        int recordsCount = remedyResponse.getValidEventList().size() + remedyResponse.getInvalidEventList().size();
                         totalRecordsRead += recordsCount;
                         validRecords += remedyResponse.getValidEventList().size();
                         if (recordsCount < chunkSize && totalRecordsRead < nMatches.intValue() && exceededMaxServerEntries) {
-                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
                             System.err.println(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + recordsCount);
                             chunkSize = recordsCount;
                         } else if (recordsCount <= chunkSize) {
-                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getLargeInvalidEventCount() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
                         }
                         if (totalRecordsRead < nMatches.longValue() && (totalRecordsRead + chunkSize) > nMatches.longValue()) {
                             //assuming the long value would be in int range always
@@ -156,18 +157,18 @@ public class RemedyTicketsCollector implements Collector {
                         iteration++;
                         startFrom = totalRecordsRead;
 
-                        if (remedyResponse.getLargeInvalidEventCount() > 0) {
+                        if (remedyResponse.getInvalidEventList().size() > 0) {
                             List<String> eventIds = new ArrayList<>();
                             if (arServerForm == ARServerForm.INCIDENT_FORM) {
-                                for (TSIEvent event : remedyResponse.getInvalidEventList()) {
-                                    eventIds.add(event.getProperties().get(Constants.PROPERTY_INCIDENTNO));
+                                for (InvalidEvent event : remedyResponse.getInvalidEventList()) {
+                                    eventIds.add(event.getInvalidEvent().getProperties().get(Constants.PROPERTY_INCIDENTNO));
                                 }
                             } else {
-                                for (TSIEvent event : remedyResponse.getInvalidEventList()) {
-                                    eventIds.add(event.getProperties().get(Constants.PROPERTY_CHANGEID));
+                                for (InvalidEvent event : remedyResponse.getInvalidEventList()) {
+                                    eventIds.add(event.getInvalidEvent().getProperties().get(Constants.PROPERTY_CHANGEID));
                                 }
                             }
-                            droppedEventIds.addAll(eventIds);
+                            droppedEvents.addAll(remedyResponse.getInvalidEventList());
                             System.err.println("Following " + name + " ids are larger than allowed limits [" + String.join(",", eventIds) + "]");
 
                         }
@@ -224,9 +225,22 @@ public class RemedyTicketsCollector implements Collector {
                     }//each chunk iteration
 
                     System.err.println("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + nMatches.longValue() + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
-                    if (droppedEventIds.size() > 0) {
-                        System.err.println("______Following " + droppedEventIds.size() + " events were invalid & dropped. " + droppedEventIds);
+                    if (droppedEvents.size() > 0) {
+                    	System.err.println("______Following "+droppedEvents.size()+" events were invalid & dropped.");
+                    	if (arServerForm == ARServerForm.INCIDENT_FORM) {
+                    		droppedEvents.forEach(invalidEvent -> {
+                            	System.err.println("Entry Id : "+invalidEvent.getEntryId()+" ,"+Constants.PROPERTY_INCIDENTNO+": "+invalidEvent.getInvalidEvent().getProperties().get(Constants.PROPERTY_INCIDENTNO)+" , Event Size :"+invalidEvent.getEventSize()+", Field with max size  : "+invalidEvent.getMaxSizePropertyName()+", Field Size: "+invalidEvent.getPropertySize());
+                            });
+                        } else {
+                        	droppedEvents.forEach(invalidEvent -> {
+                        		System.err.println("Entry Id : "+invalidEvent.getEntryId()+" ,"+Constants.PROPERTY_CHANGEID+": "+invalidEvent.getInvalidEvent().getProperties().get(Constants.PROPERTY_CHANGEID)+" , Event Size :"+invalidEvent.getEventSize()+", Field with max size  : "+invalidEvent.getMaxSizePropertyName()+", Field Size: "+invalidEvent.getPropertySize());
+                            });
+                        }
+                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_INVALID_COUNT.getMetricName(), droppedEvents.size(), source));
+                    }else{
+                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_INVALID_COUNT.getMetricName(), 0, source));
                     }
+                    
                     if (totalFailure > 0) {
                         System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {

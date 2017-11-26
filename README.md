@@ -47,6 +47,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Metrics Name                             |Description                                             |
 |:----------------------------------------|:-------------------------------------------------------|
 |Remedy Plugin Heartbeat                  | Heartbeat metric(with value 1) for Remedy Plugin       |
+|Remedy Invalid Events Count              | Remedy Invalid events with size greater than limit     |
 |Remedy Successful Events Ingestion Count | Total events successfully ingested to TSI     		   |
 |Remedy Events Ingestion Failure Count    | Failed event ingestion count to TSI     	           |
 |Remedy Events Ingestion Exception        | Plugin exception (values as 0/1, 0 as no exception)    |
@@ -56,8 +57,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 * Remedy Event Ingestion
 
 ### Templates
- 1. [Incident Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/incidentDefaultTemplate.json)
- 2. [Change Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/changeDefaultTemplate.json)
+Use [Config Generator] (https://github.com/boundary/remedy-tsi-bulkingestion-script/tree/master/dist/configgenerator) for generating Json template.
 
 ### References
 [Remedy Plugin Documentation](https://docs.bmc.com/docs/display/bti10/Remedy+Plugin) 

@@ -37,7 +37,7 @@ public class PluginTemplateValidator implements TemplateValidator {
     public boolean validate(Template template) throws ValidationException {
         Configuration config = template.getConfig();
         TSIEvent payload = template.getEventDefinition();
-        Map<String, FieldItem> baseFieldItemMap = template.getFieldItemMap();
+        Map<String, FieldItem> baseFieldItemMap = template.getFieldDefinitionMap();
 
         List<String> invalidDefinitionList = new ArrayList<>();
         Map<Integer, Field> usableFieldMap = new HashMap<>();
@@ -85,13 +85,13 @@ public class PluginTemplateValidator implements TemplateValidator {
         if (properties.keySet().size() > Constants.MAX_PROPERTY_FIELD_SUPPORTED) {
             throw new ValidationException(StringUtil.format(Constants.PROPERTY_FIELD_COUNT_EXCEEDS, new Object[]{properties.keySet().size(), Constants.MAX_PROPERTY_FIELD_SUPPORTED}));
         }
-        if (!properties.containsKey("app_id")) {
+        if (!properties.containsKey(Constants.PROPERTY_APP_ID)) {
             throw new ValidationException(StringUtil.format(Constants.APPLICATION_NAME_NOT_FOUND, new Object[0]));
         }
-
-        if (!properties.containsKey(com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD)) {
-            throw new ValidationException("Property " + com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD + " is mandatory to be in eventDefinition property mapping, please add this property in the template");
+        if (!properties.containsKey(Constants.PROPERTY_LAST_MODIFIED_DATE)) {
+            throw new ValidationException(StringUtil.format(Constants.LAST_MODIFIED_DATE_NOT_FOUND, new Object[0]));
         }
+        
         for (String key : properties.keySet()) {
             if (!StringUtil.isValidJavaIdentifier(key)) {
                 throw new ValidationException(StringUtil.format(Constants.PROPERTY_NAME_INVALID, new Object[]{key.trim()}));
@@ -132,16 +132,6 @@ public class PluginTemplateValidator implements TemplateValidator {
             throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{source.getRef()}));
         }
 
-        EventSource sender = payload.getSender();
-        if (sender.getName() != null && sender.getName().startsWith("@") && !fieldItemMap.containsKey(sender.getName())) {
-            throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{sender.getName()}));
-        }
-        if (sender.getType() != null && sender.getType().startsWith("@") && !fieldItemMap.containsKey(sender.getType())) {
-            throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{sender.getType()}));
-        }
-        if (sender.getRef() != null && sender.getRef().startsWith("@") && !fieldItemMap.containsKey(sender.getRef())) {
-            throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{sender.getRef()}));
-        }
 
         // validate Config entries
         if (payload.getTitle() != null && payload.getTitle().startsWith("#")) {
@@ -174,16 +164,6 @@ public class PluginTemplateValidator implements TemplateValidator {
             validateConfigField(config, source.getRef().substring(1));
         }
 
-        sender = payload.getSender();
-        if (sender.getName() != null && sender.getName().startsWith("#")) {
-            validateConfigField(config, sender.getName().substring(1));
-        }
-        if (sender.getType() != null && sender.getType().startsWith("#")) {
-            validateConfigField(config, sender.getType().substring(1));
-        }
-        if (sender.getRef() != null && sender.getRef().startsWith("#")) {
-            validateConfigField(config, sender.getRef().substring(1));
-        }
         return true;
 
     }
