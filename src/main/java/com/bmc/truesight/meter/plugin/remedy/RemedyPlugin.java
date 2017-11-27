@@ -66,9 +66,15 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
     public void loadConfiguration() {
     	LOG.debug("loading param.json parameters configuration");
         Gson gson = new Gson();
+        String param = System.getenv(Constants.TSP_PLUGIN_PARAMS);
+        LOG.debug("System environment has parameter available as  ,{}",param);
         try {
-            //System.err.println("loading param.json data");
-            RemedyPluginConfiguration pluginConfiguration = gson.fromJson(new FileReader("param.json"), RemedyPluginConfiguration.class);
+        	RemedyPluginConfiguration pluginConfiguration = null;
+            if(param == null || param == ""){
+            	pluginConfiguration = gson.fromJson(new FileReader("param.json"), RemedyPluginConfiguration.class);
+            }else{
+            	pluginConfiguration = gson.fromJson(param, RemedyPluginConfiguration.class);
+            }
             setConfiguration(pluginConfiguration);
             LOG.debug("param.json parameters configuration loading completed");
         } catch (JsonParseException e) {

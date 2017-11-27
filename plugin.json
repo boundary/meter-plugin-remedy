@@ -1,18 +1,20 @@
 {
     "name": "BMC Remedy Plugin",
-    "version": "0.9.2",
-    "meterVersionRequired": "4.7.0-852",
+    "version": "0.9.4",
+    "meterVersionRequired": "4.7.1-865",
     "unsupportedPlatforms": [],
     "tags": "remedy",
     "description": "Ingests Incidents and Change tickets from BMC Remedy",
     "command_lua": "",
     "postExtract_lua": "",
-    "command": "java -jar target/meter-plugin-remedy-0.9.2.jar",
+    "command": "java -jar target/meter-plugin-remedy-0.9.4.jar",
     "postExtract": "",
+    "secure": true,
     "ignore": "",
     "icon": "icon.png",
     "metrics": [
 	    "REMEDY_HEARTBEAT",
+	    "REMEDY_INVALID_EVENTS_COUNT",
 	    "REMEDY_INGESTION_SUCCESS_COUNT",
 	    "REMEDY_INGESTION_FAILURE_COUNT",
 	    "REMEDY_INGESTION_EXCEPTION"
@@ -20,7 +22,7 @@
     "dashboards": [
 	    {
 	      "name": "Remedy Event Ingestion",
-	      "layout": "d-w=2&d-h=2&d-pad=5&d-light=1&d-bg=none&d-g-REMEDY_INGESTION_SUCCESS_COUNT=0-1-1-1&d-g-REMEDY_INGESTION_FAILURE_COUNT=1-1-1-1&d-g-REMEDY_INGESTION_EXCEPTION=1-0-1-1&d-g-REMEDY_HEARTBEAT=0-0-1-1"
+	      "layout": "d-w=3&d-h=2&d-pad=5&d-light=1&d-bg=none&d-g-REMEDY_HEARTBEAT=0-0-1-1&d-g-REMEDY_INGESTION_SUCCESS_COUNT=1-0-2-1&d-g-REMEDY_INGESTION_EXCEPTION=2-1-1-1&d-g-REMEDY_INGESTION_FAILURE_COUNT=1-1-1-1&d-g-REMEDY_INVALID_EVENTS_COUNT=0-1-1-1"
 	    }
     ],
     "paramArray": {

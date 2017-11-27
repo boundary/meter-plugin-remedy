@@ -21,7 +21,7 @@ The plugin allows multiple Remedy instances data to be collected with independen
 
 * [How to install java?](https://www3.ntu.edu.sg/home/ehchua/programming/howto/JDK_Howto.html)
 
-#### TrueSight Pulse Meter versions v4.7.0-852 or later
+#### TrueSight Pulse Meter versions v4.7.1-865 or later
 
 - To install new meter go to Settings->Installation or [see instructions](https://help.boundary.com/hc/en-us/sections/200634331-Installation).
 - To upgrade the meter to the latest version - [see instructions](https://help.boundary.com/hc/en-us/articles/201573102-Upgrading-the-Boundary-Meter).
@@ -47,6 +47,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Metrics Name                             |Description                                             |
 |:----------------------------------------|:-------------------------------------------------------|
 |Remedy Plugin Heartbeat                  | Heartbeat metric(with value 1) for Remedy Plugin       |
+|Remedy Invalid Events Count              | Remedy Invalid events with size greater than limit (32000 bytes)     |
 |Remedy Successful Events Ingestion Count | Total events successfully ingested to TSI     		   |
 |Remedy Events Ingestion Failure Count    | Failed event ingestion count to TSI     	           |
 |Remedy Events Ingestion Exception        | Plugin exception (values as 0/1, 0 as no exception)    |
@@ -56,8 +57,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 * Remedy Event Ingestion
 
 ### Templates
- 1. [Incident Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/incidentDefaultTemplate.json)
- 2. [Change Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/changeDefaultTemplate.json)
+Use [Config Generator] (https://github.com/boundary/remedy-tsi-bulkingestion-script/tree/master/dist/configgenerator) for generating Json template.
 
 ### References
 [Remedy Plugin Documentation](https://docs.bmc.com/docs/display/bti10/Remedy+Plugin) 
