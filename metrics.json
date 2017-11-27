@@ -8,10 +8,10 @@
     "unit": "number",
     "isDisabled": false
   },
-  "REMEDY_INGESTION_INVALID_COUNT": {
+  "REMEDY_INVALID_EVENTS_COUNT": {
     "displayName": "Remedy Invalid Events Count",
     "displayNameShort": "Remedy Invalid Cnt",
-    "description": "Remedy Invalid events with greater than size limit",
+    "description": "Remedy Invalid events with greater than size limit (32000 bytes)",
     "defaultResolutionMS": 900000,
     "defaultAggregate": "sum",
     "unit": "number",

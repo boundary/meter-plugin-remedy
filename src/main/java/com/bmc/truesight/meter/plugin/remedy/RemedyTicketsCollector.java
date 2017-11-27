@@ -236,9 +236,9 @@ public class RemedyTicketsCollector implements Collector {
                         		System.err.println("Entry Id : "+invalidEvent.getEntryId()+" ,"+Constants.PROPERTY_CHANGEID+": "+invalidEvent.getInvalidEvent().getProperties().get(Constants.PROPERTY_CHANGEID)+" , Event Size :"+invalidEvent.getEventSize()+", Field with max size  : "+invalidEvent.getMaxSizePropertyName()+", Field Size: "+invalidEvent.getPropertySize());
                             });
                         }
-                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_INVALID_COUNT.getMetricName(), droppedEvents.size(), source));
-                    }else{
-                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_INVALID_COUNT.getMetricName(), 0, source));
+                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), droppedEvents.size(), source));
+                    } else {
+                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), 0, source));
                     }
                     
                     if (totalFailure > 0) {

@@ -47,7 +47,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Metrics Name                             |Description                                             |
 |:----------------------------------------|:-------------------------------------------------------|
 |Remedy Plugin Heartbeat                  | Heartbeat metric(with value 1) for Remedy Plugin       |
-|Remedy Invalid Events Count              | Remedy Invalid events with size greater than limit     |
+|Remedy Invalid Events Count              | Remedy Invalid events with size greater than limit (32000 bytes)     |
 |Remedy Successful Events Ingestion Count | Total events successfully ingested to TSI     		   |
 |Remedy Events Ingestion Failure Count    | Failed event ingestion count to TSI     	           |
 |Remedy Events Ingestion Exception        | Plugin exception (values as 0/1, 0 as no exception)    |
