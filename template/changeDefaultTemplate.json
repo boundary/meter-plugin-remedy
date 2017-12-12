@@ -5,7 +5,7 @@
         "retryConfig": 2,
         "waitMsBeforeRetry": 5000
     },
-     "eventDefinition": {
+    "eventDefinition": {
         "title": "@TITLE",
         "fingerprintFields": ["Change_ID"],
         "severity": "@SEVERITY",

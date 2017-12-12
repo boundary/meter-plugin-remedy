@@ -69,7 +69,7 @@ public class RemedyTicketsCollector implements Collector {
 
     @Override
     public void run() {
-    	LOG.debug("########### {} Instance started ##############",config.getRequestType());
+        LOG.debug("########### {} Instance started ##############", config.getRequestType());
         EventSinkAPI eventSinkAPI = new EventSinkAPI();
         MeasurementSinkAPI measurementSinkApi = new MeasurementSinkAPI();
         EventSinkStandardOutput eventSinkAPIstd = new EventSinkStandardOutput();
@@ -79,24 +79,24 @@ public class RemedyTicketsCollector implements Collector {
         } else {
             name = "Changes";
         }
-        String source = template.getConfig().getRemedyHostName() +"_"+ name;
+        String source = template.getConfig().getRemedyHostName() + "_" + name;
         Long pollInterval = config.getPollInterval() * 60 * 1000;
         Long lastPoll = null;
         while (true) {
-        	LOG.debug("________ {} Instance Polling started ......",name);
-        	//sending heart beat
-        	measurementSinkApi.send(new Measurement(Metrics.REMEDY_HEARTBEAT.getMetricName(), Constants.MEASURE_YES, source));
+            LOG.debug("________ {} Instance Polling started ......", name);
+            //sending heart beat
+            measurementSinkApi.send(new Measurement(Metrics.REMEDY_HEARTBEAT.getMetricName(), Constants.MEASURE_YES, source));
             RemedyReader reader = new GenericRemedyReader();
             ARServerUser arServerContext = reader.createARServerContext(template.getConfig().getRemedyHostName(), template.getConfig().getRemedyPort(), template.getConfig().getRemedyUserName(), template.getConfig().getRemedyPassword());
             boolean isConnectionOpen = false;
             RemedyEventResponse remedyResponse = null;
             try {
-            	LOG.debug("________ {} Started login to AR Server",name);
+                LOG.debug("________ {} Started login to AR Server", name);
                 reader.login(arServerContext);
-                LOG.debug("________ {} login to AR Server completed",name);
+                LOG.debug("________ {} login to AR Server completed", name);
                 //Not Using template.getConfig().getChunkSize(); as for meter chunk size needed different
                 int chunkSize = Constants.CHUNK_SIZE;
-                LOG.debug("________ {} chunkSize set as {}",name,chunkSize);
+                LOG.debug("________ {} chunkSize set as {}", name, chunkSize);
                 int startFrom = 0;
                 int iteration = 1;
                 int totalRecordsRead = 0;
@@ -108,10 +108,10 @@ public class RemedyTicketsCollector implements Collector {
                 Long currentMili = Calendar.getInstance().getTimeInMillis();
                 Long pastMili = null;
                 if (lastPoll == null) {
-                	LOG.debug("________ {} _ This is the first poll",name);
+                    LOG.debug("________ {} _ This is the first poll", name);
                     pastMili = currentMili - pollInterval;
                 } else {
-                	LOG.debug("________ {} _ last poll time was {}",lastPoll);
+                    LOG.debug("________ {} _ last poll time was {}", lastPoll);
                     pastMili = lastPoll;
                 }
                 lastPoll = currentMili;
@@ -161,16 +161,14 @@ public class RemedyTicketsCollector implements Collector {
                             List<String> eventIds = new ArrayList<>();
                             if (arServerForm == ARServerForm.INCIDENT_FORM) {
                                 for (InvalidEvent event : remedyResponse.getInvalidEventList()) {
-                                    eventIds.add(event.getInvalidEvent().getProperties().get(Constants.PROPERTY_INCIDENTNO));
+                                    eventIds.add(event.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO));
                                 }
                             } else {
                                 for (InvalidEvent event : remedyResponse.getInvalidEventList()) {
-                                    eventIds.add(event.getInvalidEvent().getProperties().get(Constants.PROPERTY_CHANGEID));
+                                    eventIds.add(event.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID));
                                 }
                             }
                             droppedEvents.addAll(remedyResponse.getInvalidEventList());
-                            System.err.println("Following " + name + " ids are larger than allowed limits [" + String.join(",", eventIds) + "]");
-
                         }
                         List<TSIEvent> eventsList = remedyResponse.getValidEventList();
                         if (eventsList.size() > 0) {
@@ -201,9 +199,9 @@ public class RemedyTicketsCollector implements Collector {
                                         String id = "";
                                         String msg = error.getMessage().trim();
                                         if (arServerForm == ARServerForm.INCIDENT_FORM) {
-                                            id = eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_INCIDENTNO);
+                                            id = eventsList.get(error.getIndex()).getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO);
                                         } else {
-                                            id = eventsList.get(error.getIndex()).getProperties().get(Constants.PROPERTY_CHANGEID);
+                                            id = eventsList.get(error.getIndex()).getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID);
                                         }
                                         if (errorsMap.containsKey(msg)) {
                                             List<String> errorsId = errorsMap.get(msg);
@@ -226,28 +224,28 @@ public class RemedyTicketsCollector implements Collector {
 
                     System.err.println("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + nMatches.longValue() + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
                     if (droppedEvents.size() > 0) {
-                    	System.err.println("______Following "+droppedEvents.size()+" events were invalid & dropped.");
-                    	if (arServerForm == ARServerForm.INCIDENT_FORM) {
-                    		droppedEvents.forEach(invalidEvent -> {
-                            	System.err.println("Entry Id : "+invalidEvent.getEntryId()+" ,"+Constants.PROPERTY_INCIDENTNO+": "+invalidEvent.getInvalidEvent().getProperties().get(Constants.PROPERTY_INCIDENTNO)+" , Event Size :"+invalidEvent.getEventSize()+", Field with max size  : "+invalidEvent.getMaxSizePropertyName()+", Field Size: "+invalidEvent.getPropertySize());
+                        System.err.println("______Following " + droppedEvents.size() + " events were invalid & dropped.");
+                        if (arServerForm == ARServerForm.INCIDENT_FORM) {
+                            droppedEvents.forEach(invalidEvent -> {
+                                System.err.println(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
                             });
                         } else {
-                        	droppedEvents.forEach(invalidEvent -> {
-                        		System.err.println("Entry Id : "+invalidEvent.getEntryId()+" ,"+Constants.PROPERTY_CHANGEID+": "+invalidEvent.getInvalidEvent().getProperties().get(Constants.PROPERTY_CHANGEID)+" , Event Size :"+invalidEvent.getEventSize()+", Field with max size  : "+invalidEvent.getMaxSizePropertyName()+", Field Size: "+invalidEvent.getPropertySize());
+                            droppedEvents.forEach(invalidEvent -> {
+                                System.err.println(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
                             });
                         }
-                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), droppedEvents.size(), source));
+                        measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), droppedEvents.size(), source));
                     } else {
-                    	measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), 0, source));
+                        measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), 0, source));
                     }
-                    
+
                     if (totalFailure > 0) {
                         System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {
                             System.err.println("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
                         });
                     }
-                  //sending success failure measurements
+                    //sending success failure measurements
                     measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_SUCCESS_COUNT.getMetricName(), totalSuccessful, source));
                     measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_FAILURE_COUNT.getMetricName(), totalFailure, source));
                     measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_NO, source));
@@ -295,7 +293,7 @@ public class RemedyTicketsCollector implements Collector {
     private void fixCreatedAtTimestamp(RemedyEventResponse remedyResponse, Long pastMili) {
         if (remedyResponse.getValidEventList().size() > 0) {
             remedyResponse.getValidEventList().forEach(event -> {
-                String lastModDateString = event.getProperties().get(com.bmc.truesight.meter.plugin.remedy.util.Constants.LASTMOD_DATE_PROPERTY_FIELD);
+                String lastModDateString = event.getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_LAST_MODIFIED_DATE);
                 String createdDateString = event.getCreatedAt();
                 try {
                     long lastModDate = Long.parseLong(lastModDateString);
@@ -316,9 +314,9 @@ public class RemedyTicketsCollector implements Collector {
         eventsList.forEach(event -> {
             String id;
             if (arServerForm == ARServerForm.INCIDENT_FORM) {
-                id = event.getProperties().get(Constants.PROPERTY_INCIDENTNO);
+                id = event.getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO);
             } else {
-                id = event.getProperties().get(Constants.PROPERTY_CHANGEID);
+                id = event.getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID);
             }
             if (errorsMap.containsKey(msg)) {
                 List<String> errorsId = errorsMap.get(msg);

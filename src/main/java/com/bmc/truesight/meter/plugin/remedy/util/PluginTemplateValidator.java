@@ -91,7 +91,7 @@ public class PluginTemplateValidator implements TemplateValidator {
         if (!properties.containsKey(Constants.PROPERTY_LAST_MODIFIED_DATE)) {
             throw new ValidationException(StringUtil.format(Constants.LAST_MODIFIED_DATE_NOT_FOUND, new Object[0]));
         }
-        
+
         for (String key : properties.keySet()) {
             if (!StringUtil.isValidJavaIdentifier(key)) {
                 throw new ValidationException(StringUtil.format(Constants.PROPERTY_NAME_INVALID, new Object[]{key.trim()}));
@@ -131,7 +131,6 @@ public class PluginTemplateValidator implements TemplateValidator {
         if (source.getRef() != null && source.getRef().startsWith("@") && !fieldItemMap.containsKey(source.getRef())) {
             throw new ValidationException(StringUtil.format(Constants.PAYLOAD_PLACEHOLDER_DEFINITION_MISSING, new Object[]{source.getRef()}));
         }
-
 
         // validate Config entries
         if (payload.getTitle() != null && payload.getTitle().startsWith("#")) {
