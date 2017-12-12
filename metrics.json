@@ -1,47 +1,47 @@
 {
-"REMEDY_HEARTBEAT": {
-    "displayName": "Remedy Plugin Heartbeat",
-    "displayNameShort": "Remedy Heartbeat",
-    "description": "Displays remedy plugin heartbeat ",
-    "defaultResolutionMS": 900000,
-    "defaultAggregate": "avg",
-    "unit": "number",
-    "isDisabled": false
-  },
-  "REMEDY_INVALID_EVENTS_COUNT": {
-    "displayName": "Remedy Invalid Events Count",
-    "displayNameShort": "Remedy Invalid Cnt",
-    "description": "Remedy Invalid events with greater than size limit (32000 bytes)",
-    "defaultResolutionMS": 900000,
-    "defaultAggregate": "sum",
-    "unit": "number",
-    "isDisabled": false
-  },
-  "REMEDY_INGESTION_SUCCESS_COUNT": {
-    "displayName": "Remedy Successful Events Ingestion Count",
-    "displayNameShort": "Remedy Success cnt",
-    "description": "Remedy successful events ingestion count",
-    "defaultResolutionMS": 900000,
-    "defaultAggregate": "sum",
-    "unit": "number",
-    "isDisabled": false
-  },
-  "REMEDY_INGESTION_FAILURE_COUNT": {
-    "displayName": "Remedy Events Ingestion Failure Count",
-    "displayNameShort": "Remedy fail cnt",
-    "description": "Remedy events ingestion failure count",
-    "defaultResolutionMS": 900000,
-    "defaultAggregate": "sum",
-    "unit": "number",
-    "isDisabled": false
-  },
-  "REMEDY_INGESTION_EXCEPTION": {
-    "displayName": "Remedy Events Ingestion Exception",
-    "displayNameShort": "Remedy Ingstn Exptn",
-    "description": "Remedy events ingestion exception",
-    "defaultResolutionMS": 900000,
-    "defaultAggregate": "avg",
-    "unit": "number",
-    "isDisabled": false
-  }
+    "REMEDY_HEARTBEAT": {
+        "displayName": "Remedy Plugin Heartbeat",
+        "displayNameShort": "Remedy Heartbeat",
+        "description": "Displays remedy plugin heartbeat ",
+        "defaultResolutionMS": 900000,
+        "defaultAggregate": "avg",
+        "unit": "number",
+        "isDisabled": false
+    },
+    "REMEDY_INVALID_EVENTS_COUNT": {
+        "displayName": "Remedy Invalid Events Count",
+        "displayNameShort": "Remedy Invalid Cnt",
+        "description": "Remedy Invalid events with greater than size limit (32000 bytes)",
+        "defaultResolutionMS": 900000,
+        "defaultAggregate": "sum",
+        "unit": "number",
+        "isDisabled": false
+    },
+    "REMEDY_INGESTION_SUCCESS_COUNT": {
+        "displayName": "Remedy Successful Events Ingestion Count",
+        "displayNameShort": "Remedy Success cnt",
+        "description": "Remedy successful events ingestion count",
+        "defaultResolutionMS": 900000,
+        "defaultAggregate": "sum",
+        "unit": "number",
+        "isDisabled": false
+    },
+    "REMEDY_INGESTION_FAILURE_COUNT": {
+        "displayName": "Remedy Events Ingestion Failure Count",
+        "displayNameShort": "Remedy fail cnt",
+        "description": "Remedy events ingestion failure count",
+        "defaultResolutionMS": 900000,
+        "defaultAggregate": "sum",
+        "unit": "number",
+        "isDisabled": false
+    },
+    "REMEDY_INGESTION_EXCEPTION": {
+        "displayName": "Remedy Events Ingestion Exception",
+        "displayNameShort": "Remedy Ingstn Exptn",
+        "description": "Remedy events ingestion exception",
+        "defaultResolutionMS": 900000,
+        "defaultAggregate": "avg",
+        "unit": "number",
+        "isDisabled": false
+    }
 }

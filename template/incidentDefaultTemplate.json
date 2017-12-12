@@ -5,7 +5,7 @@
         "retryConfig": 2,
         "waitMsBeforeRetry": 5000
     },
-	"eventDefinition": {
+    "eventDefinition": {
         "title": "@DESCRIPTION",
         "fingerprintFields": ["Incident_Number"],
         "properties": {
