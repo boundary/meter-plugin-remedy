@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.bmc.arsys.api.ARServerUser;
 import com.bmc.arsys.api.Field;
 import com.bmc.truesight.meter.plugin.remedy.util.Constants;
+import com.bmc.truesight.meter.plugin.remedy.util.PluginLogger;
 import com.bmc.truesight.meter.plugin.remedy.util.PluginTemplateValidator;
 import com.bmc.truesight.meter.plugin.remedy.util.RequestType;
 import com.bmc.truesight.meter.plugin.remedy.util.Util;
@@ -83,6 +84,9 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
         } catch (IOException e) {
             System.err.println("IOException occured while getting the param.json data" + e.getMessage());
             eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
+        } catch (Exception ex) {
+            System.err.println("Exception occured while getting the param.json data" + ex.getMessage());
+            eventOutput.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, ex.getMessage(), Event.EventSeverity.ERROR.toString()));
         }
     }
 
@@ -93,12 +97,11 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
 
     @Override
     public void run() {
-        LOG.debug("###########  Plugin started ##############");
         ArrayList<RemedyPluginConfigurationItem> items = configuration.getItems();
-        LOG.debug("Plugin has {} instance ", items.size());
         if (items != null && items.size() > 0) {
             for (RemedyPluginConfigurationItem config : items) {
-                LOG.debug("_____ {} instance validation", config.getRequestType());
+                PluginLogger log = new PluginLogger(config);
+                log.debug("Instance parameter validation started");
                 boolean isTemplateParsingSuccessful = false;
                 boolean isTemplateValidationSuccessful = false;
                 ARServerForm form = null;
@@ -110,7 +113,7 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                 Map<Integer, Field> fieldmap = null;
                 try {
                     Template defaultTemplate = new Template();
-                    LOG.debug("Loading default field mapping  ...");
+                    log.debug("Loading default field mapping  ...");
                     if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.INCIDENT_FORM);
                         form = ARServerForm.INCIDENT_FORM;
@@ -118,16 +121,16 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                         defaultTemplate = templatePreParser.loadDefaults(ARServerForm.CHANGE_FORM);
                         form = ARServerForm.CHANGE_FORM;
                     }
-                    LOG.debug("Default field mapping load complete");
+                    log.debug("Default field mapping load complete");
                     template = templateParser.readParseConfigJson(defaultTemplate, Util.getFieldValues(config.getFields()));
-                    LOG.debug("User field mapping loading and overriding default values completed");
+                    log.debug("User field mapping loading and overriding default values completed");
                     template.getEventDefinition().getProperties().put("app_id", config.getAppId());
-                    LOG.debug("App Id set as \"{}\"", config.getAppId());
+                    log.debug("App Id set as \"{0}\"", new Object[]{config.getAppId()});
                     isTemplateParsingSuccessful = true;
                 } catch (ParsingException ex) {
-                    System.err.println("Parsing failed - " + ex.getMessage());
+                    log.error("Parsing failed - " + ex.getMessage());
                 } catch (Exception ex) {
-                    System.err.println("Parsing failed - " + ex.getMessage());
+                    log.error("Parsing failed - " + ex.getMessage());
                 }
 
                 if (isTemplateParsingSuccessful) {
@@ -138,47 +141,45 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
                             try {
                                 port = Integer.parseInt(config.getPort());
                             } catch (Exception ex) {
-                                LOG.warn("port number invalid, default port number 0 is used ");
+                                log.info("port number invalid, default port number 0 is used ");
                             }
                         }
-                        LOG.debug("Starting call to recieve available field maps from  AR server");
+                        log.debug("Starting call to recieve available field maps from  AR server");
                         ARServerUser user = reader.createARServerContext(config.getHostName(), port, config.getUserName(), config.getPassword());
                         fieldmap = reader.getFieldsMap(user, form);
                         // VALIDATION OF THE CONFIGURATION
-                        LOG.debug("{} fieldMap recieved from  AR server Remedy \"{}\"", fieldmap.size());
+                        log.debug("{0} fieldMap recieved from  AR server Remedy", new Object[]{fieldmap.size()});
                         TemplateValidator validator = new PluginTemplateValidator(fieldmap);
-                        LOG.debug("Starting template validation ....");
+                        log.debug("Starting template validation ....");
                         validator.validate(template);
-                        LOG.debug("Template validation completed");
+                        log.debug("Template validation completed");
                         isTemplateValidationSuccessful = true;
                     } catch (ValidationException ex) {
-                        System.err.println("Validation failed - " + ex.getMessage());
+                        log.error("Validation failed - " + ex.getMessage());
                     } catch (RemedyReadFailedException e) {
-                        System.err.println("Validation failed - " + e.getMessage());
+                        log.error("Validation failed - " + e.getMessage());
                     } catch (Exception ex) {
-                        System.err.println("Validation failed - " + ex.getMessage());
+                        log.error("Validation failed - " + ex.getMessage());
                     }
                 } else {
-                    LOG.debug("Template parsing is not successful, plugin cannot run if any instance has wrong configuration. Stopping the plugin");
+                    log.error("Template parsing is not successful, plugin cannot run if any instance has wrong configuration. Stopping the plugin");
                     System.exit(1);
                 }
 
                 if (isTemplateValidationSuccessful) {
-                    LOG.debug("Template validation is successful, the collector instance will be added");
+                    log.debug("Template validation is successful, the collector instance will be added");
                     if (config.getRequestType().equalsIgnoreCase(RequestType.CM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, fieldmap, ARServerForm.CHANGE_FORM));
                     } else if (config.getRequestType().equalsIgnoreCase(RequestType.IM.getValues())) {
                         dispatcher.addCollector(new RemedyTicketsCollector(config, template, fieldmap, ARServerForm.INCIDENT_FORM));
                     }
-                    LOG.debug("Collector instance added");
+                    log.debug("Collector instance added");
                 } else {
-                    LOG.debug("Template validation is not successful, plugin cannot run if any instance has wrong configuration. Stopping the plugin");
+                    log.debug("Template validation is not successful, plugin cannot run if any instance has wrong configuration. Stopping the plugin");
                     System.exit(1);
                 }
             }
-            LOG.debug("About to start running the added instances .....");
             dispatcher.run();
-            LOG.debug("______  Instances started ");
         }
     }
 
@@ -190,4 +191,5 @@ public class RemedyPlugin implements Plugin<RemedyPluginConfiguration> {
     @Override
     public void setMeasureOutput(MeasurementSink output) {
     }
+
 }

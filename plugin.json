@@ -104,6 +104,14 @@
             "type": "integer",
             "default": 15,
             "required": true
+        },
+        {
+            "title": "Logging Level",
+            "name": "logLevel",
+            "description": "Set the instance logging level",
+            "type": {
+                "enum": [["info", 3], ["critical", 5], ["error", 4], ["warning", 2], ["debug", 1]]
+            }
         }
     ]
 }

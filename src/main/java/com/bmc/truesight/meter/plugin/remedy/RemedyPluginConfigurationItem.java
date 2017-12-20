@@ -2,6 +2,8 @@ package com.bmc.truesight.meter.plugin.remedy;
 
 import java.util.Arrays;
 
+import com.bmc.truesight.meter.plugin.remedy.util.LogLevel;
+
 /**
  * @author Santosh Patil
  * @author vitiwari
@@ -16,6 +18,7 @@ public class RemedyPluginConfigurationItem {
     private String requestType;
     private String appId;
     private String fields[];
+    private int logLevel;
 
     public String getRequestType() {
         return requestType;
@@ -89,5 +92,13 @@ public class RemedyPluginConfigurationItem {
 
     public void setAppId(String appId) {
         this.appId = appId;
+    }
+
+    public int getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(int logLevel) {
+        this.logLevel = logLevel;
     }
 }

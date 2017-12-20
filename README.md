@@ -41,6 +41,7 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
 |Poll Interval     |How often (in minutes) to poll for collecting the tickets                    |
 |Ticket Type       |Type of tickets to be collected(Incidents or Change)                                      |
 |Field Mapping     |Type of fields will be collected(more info please check in template section)   |
+|Logging Level     |Logging level for plugin instance (default is info)                            |
 
 ### Metrics Collected
 

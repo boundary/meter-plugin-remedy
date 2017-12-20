@@ -15,7 +15,8 @@
                 "\t}",
                 "}"
             ],
-            "pollInterval": 15
+            "pollInterval": 15,
+            "logLevel": 3
         }
     ],
     "pollInterval": 15

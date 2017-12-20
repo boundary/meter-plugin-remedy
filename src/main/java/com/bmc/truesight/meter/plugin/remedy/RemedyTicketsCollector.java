@@ -16,7 +16,9 @@ import com.bmc.arsys.api.Field;
 import com.bmc.arsys.api.OutputInteger;
 import com.bmc.truesight.meter.plugin.remedy.beans.RpcResponse;
 import com.bmc.truesight.meter.plugin.remedy.util.Constants;
+import com.bmc.truesight.meter.plugin.remedy.util.LogLevel;
 import com.bmc.truesight.meter.plugin.remedy.util.Metrics;
+import com.bmc.truesight.meter.plugin.remedy.util.PluginLogger;
 import com.bmc.truesight.meter.plugin.remedy.util.Util;
 import com.bmc.truesight.saas.remedy.integration.ARServerForm;
 import com.bmc.truesight.saas.remedy.integration.RemedyReader;
@@ -46,7 +48,7 @@ import com.google.gson.Gson;
  */
 public class RemedyTicketsCollector implements Collector {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RemedyPlugin.class);
+    private PluginLogger LOG;
     private final RemedyPluginConfigurationItem config;
     private final Template template;
     private final Map<Integer, Field> fieldMap;
@@ -60,6 +62,7 @@ public class RemedyTicketsCollector implements Collector {
         Util.updateConfiguration(this.template, config);
         this.arServerForm = arServerForm;
         remedyEntryEventAdapter = new RemedyEntryEventAdapter(fieldMap);
+        LOG = new PluginLogger(config);
     }
 
     @Override
@@ -69,7 +72,7 @@ public class RemedyTicketsCollector implements Collector {
 
     @Override
     public void run() {
-        LOG.debug("########### {} Instance started ##############", config.getRequestType());
+        LOG.debug("########### Instance started ##############");
         EventSinkAPI eventSinkAPI = new EventSinkAPI();
         MeasurementSinkAPI measurementSinkApi = new MeasurementSinkAPI();
         EventSinkStandardOutput eventSinkAPIstd = new EventSinkStandardOutput();
@@ -83,7 +86,7 @@ public class RemedyTicketsCollector implements Collector {
         Long pollInterval = config.getPollInterval() * 60 * 1000;
         Long lastPoll = null;
         while (true) {
-            LOG.debug("________ {} Instance Polling started ......", name);
+            LOG.debug("Instance Polling started ......");
             //sending heart beat
             measurementSinkApi.send(new Measurement(Metrics.REMEDY_HEARTBEAT.getMetricName(), Constants.MEASURE_YES, source));
             RemedyReader reader = new GenericRemedyReader();
@@ -91,12 +94,12 @@ public class RemedyTicketsCollector implements Collector {
             boolean isConnectionOpen = false;
             RemedyEventResponse remedyResponse = null;
             try {
-                LOG.debug("________ {} Started login to AR Server", name);
+                LOG.debug("Started login to AR Server");
                 reader.login(arServerContext);
-                LOG.debug("________ {} login to AR Server completed", name);
+                LOG.debug("Login to AR Server completed");
                 //Not Using template.getConfig().getChunkSize(); as for meter chunk size needed different
                 int chunkSize = Constants.CHUNK_SIZE;
-                LOG.debug("________ {} chunkSize set as {}", name, chunkSize);
+                LOG.debug("ChunkSize set as {0}", new Object[]{chunkSize});
                 int startFrom = 0;
                 int iteration = 1;
                 int totalRecordsRead = 0;
@@ -108,10 +111,10 @@ public class RemedyTicketsCollector implements Collector {
                 Long currentMili = Calendar.getInstance().getTimeInMillis();
                 Long pastMili = null;
                 if (lastPoll == null) {
-                    LOG.debug("________ {} _ This is the first poll", name);
                     pastMili = currentMili - pollInterval;
+                    LOG.debug("This is the first poll, setting the pastmili as currentMili - pollInterval = {0}", new Object[]{pastMili});
                 } else {
-                    LOG.debug("________ {} _ last poll time was {}", lastPoll);
+                    LOG.debug("Last poll time was {0}", new Object[]{lastPoll});
                     pastMili = lastPoll;
                 }
                 lastPoll = currentMili;
@@ -119,17 +122,17 @@ public class RemedyTicketsCollector implements Collector {
                 template.getConfig().setEndDateTime(new Date(currentMili));
                 boolean exceededMaxServerEntries = false;
                 List<InvalidEvent> droppedEvents = new ArrayList<>();
-                System.err.println("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
+                LOG.info("Starting event reading & ingestion to tsi for (DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()) + ")");
                 isConnectionOpen = eventSinkAPI.openConnection();
                 if (isConnectionOpen) {
-                    System.err.println("JSON RPC Socket connection successful");
+                    LOG.info("JSON RPC Socket connection successful");
                 } else {
-                    System.err.println("JSON RPC Socket connection failed");
+                    LOG.error("JSON RPC Socket connection failed");
                 }
                 if (isConnectionOpen) {
                     Map<String, List<String>> errorsMap = new HashMap<>();
                     while (readNext) {
-                        System.err.println("Iteration : " + iteration);
+                        LOG.info("Iteration : " + iteration);
                         remedyResponse = reader.readRemedyTickets(arServerContext, arServerForm, template, startFrom, chunkSize, nMatches, remedyEntryEventAdapter);
                         fixCreatedAtTimestamp(remedyResponse, pastMili);
                         exceededMaxServerEntries = reader.exceededMaxServerEntries(arServerContext);
@@ -137,11 +140,11 @@ public class RemedyTicketsCollector implements Collector {
                         totalRecordsRead += recordsCount;
                         validRecords += remedyResponse.getValidEventList().size();
                         if (recordsCount < chunkSize && totalRecordsRead < nMatches.intValue() && exceededMaxServerEntries) {
-                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
-                            System.err.println(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + recordsCount);
+                            LOG.info(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            LOG.info(" Based on exceededMaxServerEntries response as(" + exceededMaxServerEntries + "), adjusting the chunk Size as " + recordsCount);
                             chunkSize = recordsCount;
                         } else if (recordsCount <= chunkSize) {
-                            System.err.println(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
+                            LOG.info(" Request to remedy (Start From:" + startFrom + ",Chunk Size:" + chunkSize + "), Response (Valid Events:" + remedyResponse.getValidEventList().size() + ", Invalid Events:" + remedyResponse.getInvalidEventList().size() + ", Total Records Read: (" + totalRecordsRead + "/" + nMatches.intValue() + ")");
                         }
                         if (totalRecordsRead < nMatches.longValue() && (totalRecordsRead + chunkSize) > nMatches.longValue()) {
                             //assuming the long value would be in int range always
@@ -169,6 +172,7 @@ public class RemedyTicketsCollector implements Collector {
                                 }
                             }
                             droppedEvents.addAll(remedyResponse.getInvalidEventList());
+                            LOG.debug("{0} Events are dropped as they are large in size.", new Object[]{remedyResponse.getInvalidEventList().size()});
                         }
                         List<TSIEvent> eventsList = remedyResponse.getValidEventList();
                         if (eventsList.size() > 0) {
@@ -176,7 +180,9 @@ public class RemedyTicketsCollector implements Collector {
                             String eventJson = gson.toJson(eventsList);
                             StringBuilder sendEventToTSI = new StringBuilder();
                             sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
+                            LOG.debug("{0} Events are about to be sent to Meter JSON RPC channel.", new Object[]{eventsList.size()});
                             String resultJson = eventSinkAPI.emit(sendEventToTSI.toString());
+                            LOG.debug("Meter Response: ", new Object[]{resultJson});
                             ObjectMapper mapper = new ObjectMapper();
                             RpcResponse rpcResponse = mapper.readValue(resultJson, RpcResponse.class);
                             if (rpcResponse.getResult() == null) {
@@ -216,22 +222,22 @@ public class RemedyTicketsCollector implements Collector {
                                 }
                             }
                         } else {
-                            System.err.println(eventsList.size() + " Events found for the interval, DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()));
+                            LOG.info(eventsList.size() + " Events found for the interval, DateTime:" + Util.dateToString(template.getConfig().getStartDateTime()) + " to DateTime:" + Util.dateToString(template.getConfig().getEndDateTime()));
                             eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, Constants.REMEDY_IM_NO_DATA_AVAILABLE, Event.EventSeverity.INFO.toString()));
                         }
 
                     }//each chunk iteration
 
-                    System.err.println("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + nMatches.longValue() + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
+                    LOG.info("____________" + name + " ingestion to truesight intelligence final status: Remedy Records = " + totalRecordsRead + ", Valid Records Sent = " + validRecords + ", Successful = " + totalSuccessful + " , Failure = " + totalFailure + " ______");
                     if (droppedEvents.size() > 0) {
-                        System.err.println("______Following " + droppedEvents.size() + " events were invalid & dropped.");
+                        LOG.error("______Following " + droppedEvents.size() + " events were invalid & dropped.");
                         if (arServerForm == ARServerForm.INCIDENT_FORM) {
                             droppedEvents.forEach(invalidEvent -> {
-                                System.err.println(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
+                                LOG.error(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_INCIDENT_NO) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
                             });
                         } else {
                             droppedEvents.forEach(invalidEvent -> {
-                                System.err.println(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
+                                LOG.error(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID + ": " + invalidEvent.getInvalidEvent().getProperties().get(com.bmc.truesight.saas.remedy.integration.util.Constants.PROPERTY_CHANGE_ID) + " , Event Size :" + invalidEvent.getEventSize() + ", Field with max size  : " + invalidEvent.getMaxSizePropertyName() + ", Field Size: " + invalidEvent.getPropertySize());
                             });
                         }
                         measurementSinkApi.send(new Measurement(Metrics.REMEDY_INVALID_EVENTS_COUNT.getMetricName(), droppedEvents.size(), source));
@@ -240,9 +246,9 @@ public class RemedyTicketsCollector implements Collector {
                     }
 
                     if (totalFailure > 0) {
-                        System.err.println("______ Event Count, Failure reason , [Reference Id(s)] ______");
+                        LOG.error("______ Event Count, Failure reason , [Reference Id(s)] ______");
                         errorsMap.keySet().forEach(msg -> {
-                            System.err.println("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
+                            LOG.error("______ " + errorsMap.get(msg).size() + "    , " + msg + ",  " + errorsMap.get(msg));
                         });
                     }
                     //sending success failure measurements
@@ -251,13 +257,13 @@ public class RemedyTicketsCollector implements Collector {
                     measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_NO, source));
                 }
             } catch (RemedyLoginFailedException e) {
-                System.err.println("Remedy login failed :" + e.getMessage());
+                LOG.error("Remedy login failed :" + e.getMessage());
                 measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
             } catch (RemedyReadFailedException e) {
-                System.err.println("Reading records from Remedy Failed, Reason :" + e.getMessage());
+                LOG.error("Reading records from Remedy Failed, Reason :" + e.getMessage());
                 measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
             } catch (Exception e) {
-                System.err.println("Exception occured while fetching the data" + e.getMessage());
+                LOG.error("Exception occured while fetching the data" + e.getMessage());
                 measurementSinkApi.send(new Measurement(Metrics.REMEDY_INGESTION_EXCEPTION.getMetricName(), Constants.MEASURE_YES, source));
                 eventSinkAPIstd.emit(Util.eventMeterTSI(Constants.REMEDY_PLUGIN_TITLE_MSG, e.getMessage(), Event.EventSeverity.ERROR.toString()));
             } finally {
@@ -265,26 +271,30 @@ public class RemedyTicketsCollector implements Collector {
                 if (isConnectionOpen) {
                     boolean isConnectionClosed = eventSinkAPI.closeConnection();
                     if (isConnectionClosed) {
-                        System.err.println("JSON RPC Socket connection successfuly closed");
+                        LOG.info("JSON RPC Socket connection successfuly closed");
                     } else {
-                        System.err.println("Closing JSON RPC Socket connection failed");
+                        LOG.error("Closing JSON RPC Socket connection failed");
                     }
                 }
             }
             Long now = Calendar.getInstance().getTimeInMillis();
             Long elapsedTime = now - lastPoll;
+            LOG.debug("Elapsed time from last poll = {0} sec", new Object[]{elapsedTime / 1000});
             Long timeToSleep = null;
             if (elapsedTime > pollInterval) {
                 timeToSleep = 0l;
+                LOG.debug("Elapsed time is more than poll interval, Next poll will happen after {0} miliseconds, ie {1} min", new Object[]{timeToSleep, timeToSleep / (1000 * 60)});
             } else {
                 timeToSleep = pollInterval - elapsedTime;
+                LOG.debug("Elapsed time is less than poll interval, Next poll will happen after {0} miliseconds, ie {1} min", new Object[]{timeToSleep, timeToSleep / (1000 * 60)});
             }
 
             if (timeToSleep > 0) {
                 try {
+                    LOG.debug("Making the thread to Sleep for {0} milisecond, ie {1} min", new Object[]{timeToSleep, timeToSleep / (1000 * 60)});
                     TimeUnit.MILLISECONDS.sleep(timeToSleep);
                 } catch (InterruptedException e) {
-                    System.err.println("Interrupted Exception :" + e.getMessage());
+                    LOG.error("Interrupted Exception :" + e.getMessage());
                 }
             }
         }//infinite while loop end
