@@ -182,7 +182,7 @@ public class RemedyTicketsCollector implements Collector {
                             sendEventToTSI.append(Constants.REMEDY_PROXY_EVENT_JSON_START_STRING).append(eventJson).append(Constants.REMEDY_PROXY_EVENT_JSON_END_STRING);
                             LOG.debug("{0} Events are about to be sent to Meter JSON RPC channel.", new Object[]{eventsList.size()});
                             String resultJson = eventSinkAPI.emit(sendEventToTSI.toString());
-                            LOG.debug("Meter Response: ", new Object[]{resultJson});
+                            LOG.debug("Meter Response: {0}", new Object[]{resultJson});
                             ObjectMapper mapper = new ObjectMapper();
                             RpcResponse rpcResponse = mapper.readValue(resultJson, RpcResponse.class);
                             if (rpcResponse.getResult() == null) {
