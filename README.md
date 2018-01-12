@@ -61,6 +61,15 @@ If you want to import historical Remedy data into TrueSight Intelligence, it is 
  1. [Incident Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/incidentDefaultTemplate.json)
  2. [Change Default Template](https://github.com/boundary/meter-plugin-remedy/blob/master/template/changeDefaultTemplate.json)
 
-### References
-[Remedy Plugin Documentation](https://docs.bmc.com/docs/display/bti10/Remedy+Plugin)  
+### Build Process (if you want to contribute)
+```
+1. Obtain AR api java sdk.
+2. Add the jar file to local m2 repository
+3. Clone following dependent projects and build.
+	a. https://github.com/boundary/remedy-tsi-integration-lib
+	b. https://github.com/boundary/meter-plugin-sdk-java
+4. Build the current project - mvn clean install
+```
 
+### References
+[Remedy Plugin Documentation](https://docs.bmc.com/docs/display/bti10/Remedy+Plugin)
