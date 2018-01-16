@@ -172,6 +172,7 @@ public class RemedyTicketsCollector implements Collector {
                                 }
                             }
                             droppedEvents.addAll(remedyResponse.getInvalidEventList());
+                            totalFailure += remedyResponse.getInvalidEventList().size();
                             LOG.debug("{0} Events are dropped as they are large in size.", new Object[]{remedyResponse.getInvalidEventList().size()});
                         }
                         List<TSIEvent> eventsList = remedyResponse.getValidEventList();
